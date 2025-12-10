@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy Incentive Application System - Save Better</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" type="text/css">
+    </head>
+<body>
+
+    <header class="main-header">
+        <div class="top-bar">
+            <div class="logo-area">
+            <img src="{{ url_for('static', filename='img/uh-logo.png') }}" alt="University of Hawai'i Manoa Logo">                <h1>Energy Incentive Application System</h1>
+            </div>
+            
+            <nav class="login-nav">
+                <a href="/user-login">User Login</a>
+                <a href="/contractor-login">Contractor Login</a>
+            </nav>
+        </div>
+
+        <nav class="main-nav">
+            <div class="branding-title">SAVE BETTER</div>
+            <ul class="nav-links">
+                <li><a href="/opportunities">Opportunities</a></li>
+                <li><a href="/rebates">Rebates</a></li>
+                <li><a href="/about">About</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero-section">
+        <div class="content-text">
+            <h2>Rebates That Save You **30%-50%**</h2>
+            <p>
+                Fund energy-efficient upgrades that reduce annual utility expenses and free budget for student programs.
+            </p>
+        </div>
+        
+        <div class="hero-graphic">
+        <img src="{{ url_for('static', filename='img/energy-graphic.png') }}" alt="Graphic showing energy savings with a lightbulb and growing money chart.">            <button class="cta-button">GET STARTED</button>
+        </div>
+    </section>
+
+    <section class="how-it-works">
+        <h2 class="section-title">How It Works</h2>
+        
+        <div class="steps-container">
+            <div class="step-item">
+                <div class="icon-circle">
+                    <span class="icon">1</span>
+                </div>
+                <p>Find your rebate</p>
+            </div>
+
+            <div class="step-item">
+                <div class="icon-circle">
+                    <span class="icon">2</span>
+                </div>
+                <p>Submit application</p>
+            </div>
+
+            <div class="step-item">
+                <div class="icon-circle">
+                    <span class="icon">3</span>
+                </div>
+                <p>Receive your rebate</p>
+            </div>
+        </div>
+    </section>
+    
+    </body>
+</html>
