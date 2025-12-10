@@ -349,3 +349,33 @@ body, html {
     background-color: #92CD92; /* Lighter green/grey look */
     color: var(--text-dark);
 }
+
+/* --- Styles for the new Sign Up Link on the login page --- */
+
+/* Ensures the sign-up text is visible and centered */
+.signup-link {
+    text-align: center;
+    margin: 15px 0 10px; /* Provides space above and below the link */
+    font-size: 0.95em;
+    color: #d8d8d8; /* A dark gray color for the main text */
+}
+
+/* Styles the actual "Sign Up" anchor text */
+.signup-link a {
+    color: #e8e8e8; /* Use your secondary green for emphasis */
+    font-weight: bold;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.signup-link a:hover {
+    color: #92CD92; /* Darker green on hover */
+    text-decoration: underline;
+}
+
+/* Ensure the Forgot Password link is pushed down correctly */
+.login-form .forgot-password {
+    display: block; /* Ensures it takes its own line */
+    text-align: center;
+    margin-top: 10px; /* Ensures it is clearly separated from the Sign Up link */
+}

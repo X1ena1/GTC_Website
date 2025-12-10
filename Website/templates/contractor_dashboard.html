@@ -18,14 +18,23 @@
                 </div>
             </div>
             
-            <h2 class="welcome-title">Welcome Office of Sustainability</h2>
+            <h2 class="welcome-title">Welcome {{ session.get('username', 'Office of Sustainability') }}</h2>
             
             <div class="header-nav-container">
                 <div class="nav-links-right">
                     <a href="{{ url_for('index') }}">Home</a>
+                    
+                    <div class="dropdown">
+                        <button class="dropbtn">Admin & Reports</button>
+                        <div class="dropdown-content">
+                            <a href="{{ url_for('energy_report') }}">Energy Report</a>
+                            <a href="{{ url_for('payment_report') }}">Payment Report</a>
+                            <a href="{{ url_for('sponsor_approvals') }}">Sponsor Approvals</a>
+                            <a href="{{ url_for('project_report') }}">Project Report</a>
+                        </div>
+                    </div>
                     <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
                 </div>
-                <img src="{{ url_for('static', filename='img/contractor_badge.png') }}" alt="Contractor Badge" class="contractor-badge">
             </div>
         </div>
     </header>
@@ -34,16 +43,16 @@
         
         <section class="stats-summary">
             <div class="stat-box pending">
-                <h3>Pending Applications : <span>3</span></h3>
+                <h3>Pending Applications : <span>{{ counts['Pending'] }}</span></h3>
             </div>
             <div class="stat-box approved">
-                <h3>Approved : <span>8</span></h3>
+                <h3>Approved : <span>{{ counts['Approved'] }}</span></h3>
             </div>
             <div class="stat-box rejected">
-                <h3>Rejected : <span>1</span></h3>
+                <h3>Rejected : <span>{{ counts['Rejected'] }}</span></h3>
             </div>
         </section>
-
+        
         <section class="action-buttons">
             <a href="{{ url_for('new_eia_application') }}">
                 <button class="action-btn new-eia">Create New EIA Application</button>
@@ -54,15 +63,19 @@
         </section>
 
         <section class="status-feed">
+            <h3>Recent Activity Feed</h3>
             <div class="feed-box">
                 <ul>
-                    <li>EIA #124 submitted and awaiting Sponsor approval</li>
-                    <li>EIA #139 rebate payment processed</li>
+                    {% for item in feed_items %}
+                    <li>{{ item|safe }}</li>
+                    {% endfor %}
+                    {% if not feed_items %}
+                    <li>No recent application activity to display.</li>
+                    {% endif %}
                 </ul>
             </div>
         </section>
-
-    </main>
+        </main>
 
 </body>
 </html>

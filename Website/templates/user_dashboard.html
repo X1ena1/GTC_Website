@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - Energy Incentive System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" type="text/css">
+    <style>
+        /* This is temporary custom styling, you should move it to index.css later */
+        .user-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+
+        .user-action-btn-group {
+            display: flex;
+            gap: 20px;
+        }
+
+        .user-action-btn {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: 1px solid var(--primary-green);
+            background-color: #fff;
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.2s;
+        }
+
+        .user-action-btn:hover {
+            background-color: var(--secondary-green);
+            color: var(--text-light);
+        }
+
+        .application-table-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .application-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+
+        .application-table th, .application-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .application-table th {
+            background-color: var(--primary-green);
+            color: var(--text-light);
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-Pending { color: #FFC000; font-weight: bold; }
+        .status-Approved { color: var(--secondary-green); font-weight: bold; }
+        .status-Rejected { color: #C00000; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="top-bar">
+            <div class="logo-area">
+                <img src="{{ url_for('static', filename='img/uh-logo.png') }}" alt="University of Hawai'i Manoa Logo">
+                <div class="utility-icons">
+                    <span class="icon-bell"></span> 
+                    <span class="icon-gear"></span> 
+                </div>
+            </div>
+            
+            <h2 class="welcome-title">Welcome, {{ username }}!</h2>
+            
+            <div class="header-nav-container">
+                <div class="nav-links-right">
+                    <a href="{{ url_for('index') }}">Home</a>
+                    <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard-content-area container">
+        
+        <div class="user-header-actions">
+            <h1>Your Project Dashboard</h1>
+            <div class="user-action-btn-group">
+                <a href="{{ url_for('user_new_eia_application') }}">
+                    <button class="user-action-btn">Submit New Application</button>
+                </a>
+            </div>
+        </div>
+
+        <section class="application-table-container">
+            <h2>Recent Applications Status</h2>
+            <table class="application-table">
+                <thead>
+                    <tr>
+                        <th>EIA #</th>
+                        <th>Project Title</th>
+                        <th>Sponsor</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if applications %}
+                        {% for app in applications %}
+                        <tr>
+                            <td>{{ app.id }}</td>
+                            <td>{{ app.project_title }}</td>
+                            <td>{{ app.application_sponsor }}</td>
+                            <td class="status-{{ app.status }}">
+                                {{ app.status }}
+                            </td>
+                            <td><a href="#">View Details</a></td> 
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" style="text-align: center;">You have not submitted any applications yet.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </section>
+
+    </main>
+
+</body>
+</html>

@@ -15,17 +15,25 @@
             </div>
             
             <nav class="login-nav">
-                <a href="/user-login">User Login</a>
-                <a href="{{ url_for('contractor_login') }}">Contractor Login</a>            </nav>
+                {% if session.get('contractor_logged_in') or session.get('user_logged_in') %}
+                    <span class="logged-in-user">
+                        Welcome, {{ session.get('username') or session.get('user_username') }}!
+                    </span>
+                    <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('user_login') }}">User Login</a>
+                    <a href="{{ url_for('contractor_login') }}">Contractor Login</a>
+                {% endif %}
+            </nav>
         </div>
 
         <nav class="main-nav">
             <div class="branding-title">SAVE BETTER</div>
             <ul class="nav-links">
-                <li><a href="/opportunities">Opportunities</a></li>
-                <li><a href="/impact">Impact</a></li>
-                <li><a href="/rebates">Rebates</a></li>
-                <li><a href="/about">About</a></li>
+                <li><a href="{{ url_for('opportunities') }}">Opportunities</a></li>
+                <li><a href="{{ url_for('impact') }}">Impact</a></li>
+                <li><a href="{{ url_for('rebates') }}">Rebates</a></li>
+                <li><a href="{{ url_for('about') }}">About</a></li>
             </ul>
         </nav>
     </header>
@@ -39,7 +47,21 @@
         </div>
         
         <div class="hero-graphic">
-        <img src="{{ url_for('static', filename='img/energy-graphic.png') }}" alt="Graphic showing energy savings with a lightbulb and growing money chart.">            <button class="cta-button">GET STARTED</button>
+        <img src="{{ url_for('static', filename='img/energy-graphic.png') }}" alt="Graphic showing energy savings with a lightbulb and growing money chart.">
+            
+            {% if session.get('user_logged_in') %}
+                <a href="{{ url_for('user_dashboard') }}">
+                    <button class="cta-button">GO TO DASHBOARD</button>
+                </a>
+            {% elif session.get('contractor_logged_in') %}
+                <a href="{{ url_for('contractor_dashboard') }}">
+                    <button class="cta-button">GO TO DASHBOARD</button>
+                </a>
+            {% else %}
+                <a href="{{ url_for('user_login') }}">
+                    <button class="cta-button">GET STARTED</button>
+                </a>
+            {% endif %}
         </div>
     </section>
 

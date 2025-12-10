@@ -43,7 +43,14 @@ def get_db_connection():
 
 @app.route("/")
 def index():
-    return render_template('index.html')
+    # Check if a user is logged in and redirect them to their respective dashboard
+    if session.get('user_logged_in'):
+        return redirect(url_for('user_dashboard'))
+    elif session.get('contractor_logged_in'):
+        return redirect(url_for('contractor_dashboard'))
+    else:
+        # If no one is logged in, show the public homepage
+        return render_template('index.html')
 
 @app.route('/impact')
 def impact():
@@ -103,14 +110,75 @@ def login_submit():
     session['username'] = username if username else 'Demo Contractor'
     return redirect(url_for('contractor_dashboard'))
 
-# 3. THE PROTECTED CONTRACTOR DASHBOARD ROUTE
+# 3. THE PROTECTED CONTRACTOR DASHBOARD ROUTE (UPDATED FOR DYNAMIC COUNTS AND FEED)
 @app.route('/contractor-dashboard')
 def contractor_dashboard():
-    """Renders the protected dashboard."""
-    if 'contractor_logged_in' in session and session['contractor_logged_in']:
-        return render_template('contractor_dashboard.html')
-    else:
+    """
+    Renders the protected dashboard, fetching summary counts 
+    of applications (Pending, Approved, Rejected) and the Status Feed.
+    """
+    if 'contractor_logged_in' not in session or not session['contractor_logged_in']:
         return redirect(url_for('contractor_login'))
+
+    conn = get_db_connection()
+    status_counts = {'Pending': 0, 'Approved': 0, 'Rejected': 0, 'Total': 0}
+    status_feed_items = []  # Initialize the list for the feed
+
+    if conn is None:
+        # Pass the empty list to the template in case of error
+        return render_template('contractor_dashboard.html', counts=status_counts, feed_items=status_feed_items, username=session.get('username'))
+
+    try:
+        cursor = conn.cursor(dictionary=True)  # Use dictionary=True for easy access by column name
+        
+        # 1. Query for Status Counts (USING APPLICANT)
+        query_counts = """
+        SELECT status, COUNT(*)
+        FROM APPLICANT
+        GROUP BY status;
+        """
+        cursor.execute(query_counts)
+        results = cursor.fetchall()
+
+        total = 0
+        for row in results:
+            status_key = row['status'].strip().capitalize()
+            if status_key in status_counts:
+                status_counts[status_key] = row['COUNT(*)']
+            total += row['COUNT(*)']
+            
+        status_counts['Total'] = total
+        
+        # 2. Query for Status Feed Items (Last 5 Recent Applications/Updates) (USING APPLICANT)
+        query_feed = """
+        SELECT id, project_title, status
+        FROM APPLICANT
+        ORDER BY id DESC
+        LIMIT 5;
+        """
+        cursor.execute(query_feed)
+        feed_results = cursor.fetchall()
+        
+        # Process results into a simple list of strings for the template
+        for item in feed_results:
+            # Note: Assuming APPLICANT has 'id', 'project_title', and 'status' columns
+            feed_message = f"EIA #{item['id']} ({item['project_title']}) is currently: **{item['status']}**"
+            status_feed_items.append(feed_message)
+
+        cursor.close()
+        
+    except mysql.connector.Error as err:
+        print(f"Database query error fetching dashboard data from APPLICANT: {err}")
+        
+    finally:
+        if conn and conn.is_connected():
+            conn.close()
+
+    # Pass BOTH counts and feed_items to the template
+    return render_template('contractor_dashboard.html', 
+                           counts=status_counts, 
+                           feed_items=status_feed_items,
+                           username=session.get('username', 'Demo Contractor'))
 
 
 # --- STANDARD USER AUTHENTICATION ROUTES (NEW) ---
@@ -132,68 +200,117 @@ def user_login_submit():
     
     return redirect(url_for('user_dashboard'))
 
-# 3. THE PROTECTED USER DASHBOARD ROUTE
+# 3. THE PROTECTED USER DASHBOARD ROUTE (UPDATED TO FETCH USER'S APPLICATIONS)
 @app.route('/user-dashboard')
 def user_dashboard():
-    """Renders the protected standard user dashboard."""
-    if 'user_logged_in' in session and session['user_logged_in']:
-        # This assumes you have created user_dashboard.html
-        return render_template('user_dashboard.html', username=session.get('user_username', 'User'))
-    else:
+    """Renders the protected standard user dashboard, showing their applications."""
+    if 'user_logged_in' not in session or not session['user_logged_in']:
         return redirect(url_for('user_login'))
 
-
-# --- APPLICATION/DATA ROUTES ---
-
-# 5. NEW EIA APPLICATION FORM (GET)
-@app.route('/new-eia-application')
-def new_eia_application():
-    """Renders the form for a New Energy Incentive Application."""
-    if 'contractor_logged_in' in session and session['contractor_logged_in']:
-        return render_template('new_eia_application.html')
-    else:
-        return redirect(url_for('contractor_login'))
-
-# 6. VIEW ALL APPLICATIONS ROUTE (MODIFIED to show APPLICANT/UNIT data)
-@app.route('/view-all-applications')
-def view_all_applications():
-    """Fetches all data from the APPLICANT table (which stores department/unit info)."""
-    if 'contractor_logged_in' not in session or not session['contractor_logged_in']:
-        return redirect(url_for('contractor_login'))
+    username = session.get('user_username', 'Demo User')
+    user_applications = []
     
     conn = get_db_connection()
-    departments = [] # Variable named for clarity, as it shows Department info
-    
     if conn is None:
-        return render_template('view_all_applications.html', departments=departments)
+        return render_template('user_dashboard.html', username=username, applications=user_applications)
 
     try:
         cursor = conn.cursor(dictionary=True)
         
-        # Selecting the five columns matching your APPLICANT table structure
+        # Query to get the user's specific applications (USING APPLICANT)
         query = """
-        SELECT Department_ID, Department_Name, Contact_Email, School, District
+        SELECT id, project_title, status, application_sponsor, submitted_by
         FROM APPLICANT
-        ORDER BY Department_Name ASC
+        WHERE submitted_by = %s 
+        ORDER BY id DESC
+        LIMIT 10;
         """
-        cursor.execute(query)
-        departments = cursor.fetchall()
+        cursor.execute(query, (username,)) 
+        user_applications = cursor.fetchall()
         cursor.close()
         
     except mysql.connector.Error as err:
+        print(f"Database query error fetching user dashboard applications from APPLICANT: {err}")
+        
+    finally:
+        if conn and conn.is_connected():
+            conn.close()
+
+    return render_template('user_dashboard.html', 
+                           username=username, 
+                           applications=user_applications)
+
+# 4. SHOW THE USER SIGNUP/REGISTRATION FORM
+@app.route('/user-signup', methods=['GET'])
+def user_signup():
+    """Renders the standard user registration page template."""
+    return render_template('user_signup.html')
+
+
+# --- APPLICATION/DATA ROUTES ---
+
+# 5. CONTRACTOR'S NEW EIA APPLICATION FORM (GET) - NOW PASSES DYNAMIC DASHBOARD URL
+@app.route('/new-eia-application')
+def new_eia_application():
+    """Renders the form for a New Energy Incentive Application (Contractor access)."""
+    if 'contractor_logged_in' in session and session['contractor_logged_in']:
+        return render_template('new_eia_application.html', 
+                               dashboard_url=url_for('contractor_dashboard'))
+    else:
+        return redirect(url_for('contractor_login'))
+        
+# 5A. USER'S NEW EIA APPLICATION FORM (GET) - NOW PASSES DYNAMIC DASHBOARD URL
+@app.route('/user-new-eia-application')
+def user_new_eia_application():
+    """Renders the form for a New Energy Incentive Application (User/Department access)."""
+    if 'user_logged_in' in session and session['user_logged_in']:
+        return render_template('new_eia_application.html', 
+                               dashboard_url=url_for('user_dashboard'))
+    else:
+        return redirect(url_for('user_login'))
+
+
+# 6. VIEW ALL APPLICATIONS ROUTE (Contractor View) - FIXED TO QUERY 'APPLICANT' TABLE
+@app.route('/view-all-applications')
+def view_all_applications():
+    """Fetches all applications data for the contractor view (from APPLICANT table)."""
+    if 'contractor_logged_in' not in session or not session['contractor_logged_in']:
+        return redirect(url_for('contractor_login'))
+    
+    conn = get_db_connection()
+    applications = [] 
+    
+    if conn is None:
+        return render_template('view_all_applications.html', applications=applications)
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        
+        # FIXED: Querying the 'APPLICANT' table to get project data
+        query = """
+        SELECT id, department, project_title, status, application_sponsor, submitted_by
+        FROM APPLICANT
+        ORDER BY id DESC
+        """
+        cursor.execute(query)
+        applications = cursor.fetchall()
+        cursor.close()
+        
+    except mysql.connector.Error as err:
+        # NOTE: This error will occur if the APPLICANT table is missing columns like 'project_title' or 'status'
         print(f"Database query error in view_all_applications (APPLICANT table): {err}")
         
     finally:
         if conn and conn.is_connected():
             conn.close()
 
-    return render_template('view_all_applications.html', departments=departments)
+    return render_template('view_all_applications.html', applications=applications)
 
 
-# 7. EIA FORM SUBMISSION (POST)
+# 7. CONTRACTOR'S EIA FORM SUBMISSION (POST) (USING APPLICANT)
 @app.route('/submit-eia', methods=['POST'])
 def submit_eia():
-    """Handles the submission of the New EIA Application form data, including file upload."""
+    """Handles the submission of the New EIA Application form data (Contractor submits)."""
     if 'contractor_logged_in' not in session:
         return redirect(url_for('contractor_login'))
     
@@ -212,7 +329,7 @@ def submit_eia():
         description = request.form.get('description')
         uploaded_file_path = "N/A"
         
-        # 2. Handle File Upload
+        # 2. Handle File Upload (Code omitted for brevity, but remains in the actual file)
         if 'documents' in request.files:
             file = request.files['documents']
             if file and file.filename != '':
@@ -221,9 +338,9 @@ def submit_eia():
                 file.save(full_path)
                 uploaded_file_path = os.path.join('static/uploads', filename).replace('\\', '/')
 
-        # 3. Prepare and Execute SQL INSERT
+        # 3. Prepare and Execute SQL INSERT (INTO APPLICANT)
         sql = """
-        INSERT INTO applications 
+        INSERT INTO APPLICANT
         (department, project_title, project_type, application_sponsor, project_description, supporting_documents_path, status, submitted_by)
         VALUES (%s, %s, %s, %s, %s, %s, 'Pending', %s)
         """
@@ -234,7 +351,7 @@ def submit_eia():
             sponsor,
             description,
             uploaded_file_path,
-            session.get('username', 'Unknown Contractor')
+            session.get('username', 'Unknown Contractor') # Tracks Contractor username
         )
         
         cursor.execute(sql, data)
@@ -244,13 +361,104 @@ def submit_eia():
         return redirect(url_for('contractor_dashboard'))
 
     except mysql.connector.Error as err:
-        print(f"Database insertion error: {err}")
+        print(f"Database insertion error into APPLICANT: {err}")
         conn.rollback()
         return "Error submitting application to database.", 500
         
     finally:
         if conn and conn.is_connected():
             conn.close()
+
+# 7A. USER'S EIA FORM SUBMISSION (POST) (USING APPLICANT)
+@app.route('/user-submit-eia', methods=['POST'])
+def user_submit_eia():
+    """Handles the submission of the New EIA Application form data from a standard user."""
+    if 'user_logged_in' not in session:
+        return redirect(url_for('user_login'))
+    
+    conn = get_db_connection()
+    if conn is None:
+        return "Database connection error. Application not saved.", 500
+
+    try:
+        cursor = conn.cursor()
+        
+        # 1. Get Form Data
+        department = request.form.get('department')
+        project_title = request.form.get('project_title')
+        project_type = request.form.get('project_type')
+        sponsor = request.form.get('sponsor')
+        description = request.form.get('description')
+        uploaded_file_path = "N/A"
+        
+        # 2. Handle File Upload (Code omitted for brevity, but remains in the actual file)
+        if 'documents' in request.files:
+            file = request.files['documents']
+            if file and file.filename != '':
+                filename = secure_filename(file.filename)
+                full_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(full_path)
+                uploaded_file_path = os.path.join('static/uploads', filename).replace('\\', '/')
+
+        # 3. Prepare and Execute SQL INSERT (INTO APPLICANT)
+        sql = """
+        INSERT INTO APPLICANT
+        (department, project_title, project_type, application_sponsor, project_description, supporting_documents_path, status, submitted_by)
+        VALUES (%s, %s, %s, %s, %s, %s, 'Pending', %s)
+        """
+        data = (
+            department,
+            project_title,
+            project_type,
+            sponsor,
+            description,
+            uploaded_file_path,
+            session.get('user_username', 'Unknown User') # Tracks User/Department username
+        )
+        
+        cursor.execute(sql, data)
+        conn.commit()
+        cursor.close()
+        
+        # Redirect back to the user's dashboard
+        return redirect(url_for('user_dashboard'))
+
+    except mysql.connector.Error as err:
+        print(f"Database insertion error into APPLICANT: {err}")
+        conn.rollback()
+        return "Error submitting application to database.", 500
+        
+    finally:
+        if conn and conn.is_connected():
+            conn.close()
+
+
+# --- REPORT AND ADMIN ROUTES (NEWLY ADDED PLACEHOLDERS) ---
+
+@app.route('/energy-report')
+def energy_report():
+    if 'contractor_logged_in' not in session:
+        return redirect(url_for('contractor_login'))
+    return render_template('report_placeholder.html', report_name='Energy Report')
+
+@app.route('/payment-report')
+def payment_report():
+    if 'contractor_logged_in' not in session:
+        return redirect(url_for('contractor_login'))
+    return render_template('report_placeholder.html', report_name='Payment Report')
+
+@app.route('/sponsor-approvals')
+def sponsor_approvals():
+    if 'contractor_logged_in' not in session:
+        return redirect(url_for('contractor_login'))
+    return render_template('report_placeholder.html', report_name='Sponsor Approvals')
+
+@app.route('/project-report')
+def project_report():
+    if 'contractor_logged_in' not in session:
+        return redirect(url_for('contractor_login'))
+    return render_template('report_placeholder.html', report_name='Project Report')
+
 
 # Running application
 if __name__ == "__main__":
