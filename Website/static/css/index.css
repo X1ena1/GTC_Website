@@ -393,3 +393,191 @@ a {
     /* Optional: Highlight the active page */
     border-bottom: 2px solid var(--secondary-green); 
 }
+
+/* --- Contractor Dashboard Styles (Append to index.css) --- */
+
+/* 1. Header Adjustments for Dashboard View */
+.main-header .top-bar {
+    /* Modify top bar layout for the centered title and right alignment */
+    justify-content: space-between;
+    padding: 10px 3%; /* Slightly less padding */
+}
+
+.main-header .logo-area {
+    /* Ensure logo and icons are grouped on the left */
+    flex-grow: 0;
+    gap: 15px;
+}
+
+.utility-icons {
+    display: flex;
+    gap: 10px;
+}
+
+/* Placeholder styles for Bell and Gear icons (Use relevant characters or images) */
+.utility-icons .icon-bell::before {
+    content: "\1F514"; /* Bell icon */
+}
+.utility-icons .icon-gear::before {
+    content: "\2699"; /* Gear icon */
+}
+.utility-icons span {
+    font-size: 1.3em;
+    color: var(--text-light);
+    cursor: pointer;
+}
+
+/* Styling for the new back button link */
+.back-link-btn {
+    display: inline-block; /* CRITICAL: Allows padding and width/height like a button */
+    padding: 10px 20px;
+    font-size: 1em;
+    text-align: center;
+    text-decoration: none; /* Removes the underline from the link */
+    border: 1px solid #777; 
+    border-radius: 4px;
+    color: #333; /* Dark text for contrast */
+    background-color: #8bc871; /* The green color you requested */
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-left: 10px; 
+}
+
+/* Also ensure form-actions is set up for alignment */
+.form-actions {
+    display: flex;
+    justify-content: flex-end; 
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.welcome-title {
+    /* Center text, take up available space */
+    flex-grow: 1;
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: 500;
+}
+
+.header-nav-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-links-right {
+    display: flex;
+    gap: 20px;
+}
+
+.header-nav-container .logout-link {
+    color: #FFC000; /* Yellow for visibility */
+    font-weight: bold;
+}
+
+.contractor-badge {
+    width: 40px; /* Size of the far right circular icon */
+    height: 40px;
+    border-radius: 50%;
+    /* You would load the green contractor icon image here */
+}
+
+/* 2. Main Dashboard Content Area */
+.dashboard-content-area {
+    padding: 40px 5%;
+}
+
+/* Status Summary */
+.stats-summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.stat-box {
+    flex: 1;
+    text-align: center;
+    font-size: 1.2em;
+    padding: 10px 0;
+    border-bottom: 3px solid #ccc;
+}
+
+.stat-box h3 {
+    font-weight: normal;
+    color: var(--text-dark);
+}
+
+.stat-box span {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.stat-box.pending {
+    border-color: #FFC000; /* Yellow border */
+}
+.stat-box.pending span {
+    color: #FFC000;
+}
+
+.stat-box.approved {
+    border-color: var(--secondary-green);
+}
+.stat-box.approved span {
+    color: var(--secondary-green);
+}
+
+.stat-box.rejected {
+    border-color: #C00000; /* Red border */
+}
+.stat-box.rejected span {
+    color: #C00000;
+}
+
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.action-btn {
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: bold;
+    border: 1px solid var(--primary-green);
+    background-color: #fff;
+    cursor: pointer;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background-color 0.2s;
+}
+
+.action-btn:hover {
+    background-color: var(--secondary-green);
+    color: var(--text-light);
+}
+
+/* Status Feed */
+.status-feed {
+    margin-top: 20px;
+}
+
+.feed-box {
+    border: 1px solid #ccc;
+    padding: 20px;
+    min-height: 150px;
+    border-radius: 5px;
+}
+
+.feed-box ul {
+    list-style: disc;
+    margin-left: 20px;
+    color: var(--text-dark);
+}
+
+.feed-box ul li {
+    font-size: 1.1em;
+    margin-bottom: 10px;
+}

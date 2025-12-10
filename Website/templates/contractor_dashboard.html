@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contractor Dashboard - Energy Incentive System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" type="text/css">
+    </head>
+<body>
+
+    <header class="main-header">
+        <div class="top-bar">
+            <div class="logo-area">
+                <img src="{{ url_for('static', filename='img/uh-logo.png') }}" alt="University of Hawai'i Manoa Logo">
+                <div class="utility-icons">
+                    <span class="icon-bell"></span> 
+                    <span class="icon-gear"></span> 
+                </div>
+            </div>
+            
+            <h2 class="welcome-title">Welcome Office of Sustainability</h2>
+            
+            <div class="header-nav-container">
+                <div class="nav-links-right">
+                    <a href="{{ url_for('index') }}">Home</a>
+                    <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+                </div>
+                <img src="{{ url_for('static', filename='img/contractor_badge.png') }}" alt="Contractor Badge" class="contractor-badge">
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard-content-area">
+        
+        <section class="stats-summary">
+            <div class="stat-box pending">
+                <h3>Pending Applications : <span>3</span></h3>
+            </div>
+            <div class="stat-box approved">
+                <h3>Approved : <span>8</span></h3>
+            </div>
+            <div class="stat-box rejected">
+                <h3>Rejected : <span>1</span></h3>
+            </div>
+        </section>
+
+        <section class="action-buttons">
+            <a href="{{ url_for('new_eia_application') }}">
+                <button class="action-btn new-eia">Create New EIA Application</button>
+            </a>
+            <a href="{{ url_for('view_all_applications') }}"> 
+                <button class="action-btn view-all">View All Applications</button>
+            </a>
+        </section>
+
+        <section class="status-feed">
+            <div class="feed-box">
+                <ul>
+                    <li>EIA #124 submitted and awaiting Sponsor approval</li>
+                    <li>EIA #139 rebate payment processed</li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>

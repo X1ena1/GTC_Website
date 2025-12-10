@@ -33,13 +33,11 @@
         </nav>
     </header>
 
-    <main class="impact-stories-container">
-        <h2 class="impact-page-title">Impact Stories</h2>
-        
+<main class="impact-stories-container">
         <div class="stories-grid">
             
             <div class="story-card">
-                <img src="COLLEGE_OF_ENGINEERING_LAB_IMAGE_URL" alt="Students in an efficient lab" class="story-image">
+                <img src="{{ url_for('static', filename='img/eng_lab_modernization.jpg') }}" alt="Students in an efficient lab" class="story-image">
                 <div class="story-details">
                     <h3>College of Engineering – Energy-Efficient Lab Modernization</h3>
                     <p>Rebate Awarded: **$142,000** –</p>
@@ -49,7 +47,7 @@
             </div>
             
             <div class="story-card">
-                <img src="COLLEGE_OF_NATSCI_LED_IMAGE_URL" alt="LED Retrofit in Teaching Labs" class="story-image">
+                <img src="{{ url_for('static', filename='img/natsci_led_retrofit.jpg') }}" alt="LED Retrofit in Teaching Labs" class="story-image">
                 <div class="story-details">
                     <h3>College of Natural Sciences – LED Retrofit in Teaching Labs</h3>
                     <p>Rebate Awarded: **$67,500** –</p>
@@ -59,7 +57,7 @@
             </div>
             
             <div class="story-card">
-                <img src="SOEST_SMART_CONTROLS_IMAGE_URL" alt="SOEST Building" class="story-image">
+                <img src="{{ url_for('static', filename='img/soest_smart_controls.jpg') }}" alt="SOEST Building" class="story-image">
                 <div class="story-details">
                     <h3>School of Ocean & Earth Science and Technology (SOEST) – Smart Controls for Research Buildings</h3>
                     <p>Rebate Awarded: **$103,000** –</p>
@@ -70,6 +68,6 @@
             
         </div>
     </main>
-
+    
 </body>
 </html>

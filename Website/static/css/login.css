@@ -151,6 +151,23 @@ body, html {
     text-decoration: underline;
 }
 
+/* --- New Style for Back to Home Link --- */
+.back-home-link {
+    display: block; /* Takes up its own line */
+    margin-top: 20px; /* Space it below the Forgot Password link */
+    text-align: left;
+}
+
+.back-home-link a {
+    color: var(--text-light); /* Inherit the white text color */
+    font-size: 1.1em; /* Keep size consistent with Forgot Password */
+    text-decoration: none; /* Remove the default link underline */
+}
+
+.back-home-link a:hover {
+    text-decoration: underline; /* Add underline on hover for feedback */
+}
+
 /* --- Responsiveness (Optional but recommended) --- */
 @media (max-width: 768px) {
     .login-container {
@@ -167,4 +184,168 @@ body, html {
         height: 70vh;
         flex: 1;
     }
+}
+
+/* --- New EIA Application Form Styles (Append to login.css) --- */
+
+/* Body setup */
+.new-eia-body {
+    background-color: var(--primary-green); /* Dark green background */
+    color: var(--text-light);
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.eia-form-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 40px;
+}
+
+/* Header/Logo Area */
+.eia-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    margin-bottom: 20px;
+}
+
+.logo-area-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.uh-logo-small {
+    width: 60px;
+    height: auto;
+}
+
+.uh-name-text {
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.greentrack-logo {
+    width: 100px; /* Adjust size */
+    height: auto;
+}
+
+/* Title */
+.eia-title {
+    font-size: 1.8em;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+/* Form Structure */
+.eia-form {
+    background-color: transparent;
+}
+
+.form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.form-row label {
+    flex-basis: 35%; /* Adjust width for labels */
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+.form-row input[type="text"],
+.form-row select {
+    flex-basis: 65%;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid var(--text-light);
+    color: var(--text-light);
+    padding: 5px 0;
+    font-size: 1.1em;
+}
+
+.form-row select {
+    /* Style the dropdown options */
+    appearance: none;
+    cursor: pointer;
+}
+
+.form-row select option {
+    background-color: var(--primary-green);
+    color: var(--text-light);
+}
+
+/* File Upload Row */
+.file-upload-row input[type="file"] {
+    display: none; /* Hide the default file input button */
+}
+
+.file-upload-row .upload-btn {
+    background-color: var(--primary-green); 
+    color: var(--text-light);
+    border: 1px solid var(--text-light);
+    padding: 8px 15px;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.file-upload-row .upload-btn:hover {
+    background-color: #558A6A; /* Slightly lighter green on hover */
+}
+
+/* Project Description Textarea */
+.form-description {
+    margin-bottom: 40px;
+}
+
+.form-description label {
+    display: block;
+    font-size: 1.1em;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.form-description textarea {
+    width: 100%;
+    background-color: #2F5C41; /* Slightly lighter green box */
+    border: 1px solid #558A6A;
+    color: var(--text-light);
+    padding: 15px;
+    font-size: 1.1em;
+    resize: vertical;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+/* Action Buttons (Bottom) */
+.form-actions {
+    text-align: center;
+    margin-top: 30px;
+    padding-bottom: 50px;
+}
+
+.submit-btn,
+.draft-btn {
+    padding: 10px 30px;
+    font-size: 1.1em;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    margin: 0 15px;
+    border-radius: 5px;
+}
+
+.submit-btn {
+    background-color: #2F5C41; /* Darker green */
+    color: var(--text-light);
+    border: 1px solid var(--text-light);
+}
+
+.draft-btn {
+    background-color: #92CD92; /* Lighter green/grey look */
+    color: var(--text-dark);
 }

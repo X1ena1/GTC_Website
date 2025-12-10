@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contractor Login - Energy Incentive System</title>
+    <title>Standard User Login - Energy Incentive System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" type="text/css">
 </head>
 <body>
@@ -17,12 +17,12 @@
                 <p class="university-title">of HAWAIʻI</p>
                 <p class="manoa-title">MĀNOA</p>
                 
-                <h1 class="system-title">Energy Incentive Application System</h1>
+                <h1 class="system-title">Standard User Login</h1>
             </div>
         </div>
 
         <div class="login-panel">
-            <form action="{{ url_for('login_submit') }}" method="POST" class="login-form"> 
+            <form action="{{ url_for('user_login_submit') }}" method="POST" class="login-form"> 
                 
                 <div class="input-group">
                     <input type="text" id="username" name="username" placeholder=" " required>
@@ -37,7 +37,7 @@
                 <button type="submit" class="login-button">Login</button>
                 
                 <a href="{{ url_for('forgot_password') }}" class="forgot-password">Forgot Password?</a>
-
+                
                 <div class="back-home-link">
                     <a href="{{ url_for('index') }}">&larr; Back to Home</a>
                 </div>

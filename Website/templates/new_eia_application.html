@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New EIA Application</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" type="text/css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" type="text/css"> 
+</head>
+<body class="new-eia-body">
+
+    <div class="eia-form-container">
+        <header class="eia-header">
+            <div class="logo-area-left">
+                <img src="{{ url_for('static', filename='img/uh-logo.png') }}" alt="University of Hawai'i Manoa Logo" class="uh-logo-small">
+                <span class="uh-name-text">UNIVERSITY of HAWAIʻI MĀNOA</span>
+            </div>
+            <img src="{{ url_for('static', filename='img/greentrack_logo.png') }}" alt="GreenTrack Systems Consulting Logo" class="greentrack-logo">
+        </header>
+
+        <h1 class="eia-title">NEW ENERGY INCENTIVE APPLICAIITON</h1>
+        
+        <form action="{{ url_for('submit_eia') }}" method="POST" class="eia-form" enctype="multipart/form-data">
+            <div class="form-row">
+                <label for="department">Department :</label>
+                <input type="text" id="department" name="department" required>
+            </div>
+            
+            <div class="form-row">
+                <label for="project_title">Project title :</label>
+                <input type="text" id="project_title" name="project_title" required>
+            </div>
+
+            <div class="form-row">
+                <label for="project_type">Project type :</label>
+                <input type="text" id="project_type" name="project_type" required>
+            </div>
+
+            <div class="form-row">
+                <label for="sponsor">Application Sponsor :</label>
+                <select id="sponsor" name="sponsor">
+                    <option value="contractor">Contractor</option>
+                    <option value="sponsor">Sponsor</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-row file-upload-row">
+                <label for="documents">Upload Supporting Documents :</label>
+                <input type="file" id="documents" name="documents" class="file-input">
+                <button type="button" class="upload-btn">Upload</button>
+            </div>
+            
+            <div class="form-description">
+                <label for="description">Project Description :</label>
+                <textarea id="description" name="description" rows="10" required></textarea>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="submit-btn">Submit Application</button>
+                <button type="button" class="draft-btn">Save Draft</button>
+                
+                <a href="{{ url_for('contractor_dashboard') }}" class="back-link-btn">
+                    &larr; Back to Dashboard
+                </a>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>
