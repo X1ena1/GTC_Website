@@ -1,0 +1,170 @@
+/* --- Variables & General Reset --- */
+:root {
+    --primary-green: #38704D; 
+    --text-light: #fff;
+    --text-dark: #333;
+    --font-sans: 'Arial', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body, html {
+    font-family: var(--font-sans);
+    height: 100%;
+    margin: 0;
+    overflow: hidden; /* Prevent scrolling */
+}
+
+/* --- Login Container (Split Layout) --- */
+.login-container {
+    display: flex;
+    height: 100vh; /* Full viewport height */
+}
+
+/* --- Left Panel: Branding & Logo --- */
+.branding-panel {
+    flex: 1; /* Takes up 50% of the width */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+    padding: 20px;
+    text-align: center;
+}
+
+.logo-content {
+    max-width: 400px;
+}
+
+.uh-logo {
+    width: 150px; /* Adjust size as needed */
+    height: auto;
+    margin-bottom: 20px;
+}
+
+/* Typography styles for the UH name to match the image */
+.university-title {
+    font-size: 2em;
+    font-weight: bold;
+    color: var(--text-dark);
+    line-height: 0.9;
+    margin-top: 5px;
+}
+
+.manoa-title {
+    font-size: 1.5em;
+    font-weight: normal;
+    color: var(--text-dark);
+    margin-bottom: 25px;
+}
+
+.system-title {
+    font-size: 1.2em;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+/* --- Right Panel: Login Form --- */
+.login-panel {
+    flex: 1; /* Takes up 50% of the width */
+    background-color: var(--primary-green);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.login-form {
+    width: 80%;
+    max-width: 400px;
+    color: var(--text-light);
+}
+
+/* --- Input Field Styling --- */
+.input-group {
+    position: relative;
+    margin-bottom: 30px;
+    border-bottom: 1px solid var(--text-light); /* Underline for the input field */
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px 0;
+    background: transparent;
+    border: none;
+    color: var(--text-light);
+    font-size: 1.2em;
+    outline: none;
+}
+
+/* Hide placeholder text if you use the label/input trick */
+.input-group input::placeholder {
+    color: transparent; 
+}
+
+/* Label (used for "Username" and "Password" text) */
+.input-group label {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    font-size: 1.2em;
+    transition: all 0.3s ease;
+    pointer-events: none; /* Allows clicks to go to the input */
+}
+
+/* Label moves up and shrinks when input is focused or filled */
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+    top: -10px;
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* --- Login Button and Links --- */
+.login-button {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 1.5em;
+    font-weight: bold;
+    padding: 10px 0;
+    cursor: pointer;
+    margin-top: 20px;
+    display: block;
+    width: 100%; /* Spans the width like the inputs */
+    text-align: left;
+}
+
+.forgot-password {
+    display: block;
+    color: var(--text-light);
+    font-size: 1.1em;
+    margin-top: 10px;
+    text-align: left;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+/* --- Responsiveness (Optional but recommended) --- */
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column;
+    }
+    
+    /* Make the login panel full width on small screens and push the branding up */
+    .branding-panel {
+        height: 30vh; 
+        flex: 0 0 30vh;
+    }
+    
+    .login-panel {
+        height: 70vh;
+        flex: 1;
+    }
+}

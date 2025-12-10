@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contractor Login - Energy Incentive System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" type="text/css">
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="branding-panel">
+            <div class="logo-content">
+                <img src="{{ url_for('static', filename='img/uh-logo.png') }}" alt="University of Hawaiʻi Mānoa Logo" class="uh-logo">
+                
+                <h1 class="system-title">Energy Incentive Application System</h1>
+            </div>
+        </div>
+
+        <div class="login-panel">
+            <form action="/contractor-login" method="POST" class="login-form">
+                
+                <div class="input-group">
+                    <input type="text" id="username" name="username" placeholder=" " required>
+                    <label for="username">Username</label>
+                </div>
+                
+                <div class="input-group">
+                    <input type="password" id="password" name="password" placeholder=" " required>
+                    <label for="password">Password</label>
+                </div>
+
+                <button type="submit" class="login-button">Login</button>
+                
+                <a href="/forgot-password" class="forgot-password">Forgot Password?</a>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

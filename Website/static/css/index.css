@@ -281,3 +281,115 @@ a {
         margin: 0 10px;
     }
 }
+
+/* --- Impact Stories Page Styles (New additions to index.css) --- */
+/* 1. Updated Header Utility Navigation (Logout, Icons) */
+.utility-nav {
+    display: flex;
+    align-items: center;
+    color: var(--text-light);
+}
+
+.utility-nav .logout-link {
+    margin-left: 20px;
+    font-size: 0.9em;
+    padding: 5px 10px;
+}
+
+/* Placeholder styles for Bell and Gear icons (You would typically use Font Awesome for these) */
+.utility-nav .icon-bell::before,
+.utility-nav .icon-gear::before {
+    content: "\2605"; /* Placeholder star icon */
+    font-size: 1.2em;
+    margin-right: 15px;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+/* 2. Impact Stories Main Layout */
+.impact-stories-container {
+    padding: 30px 5%;
+    background-color: #F8F8F8; /* A slightly lighter gray than the hero section */
+    min-height: 80vh;
+}
+
+.impact-page-title {
+    font-size: 2.5em;
+    color: var(--primary-green);
+    text-align: center;
+    margin-bottom: 50px;
+    font-weight: 500;
+}
+
+/* 3. Stories Grid (Card Layout) */
+.stories-grid {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    flex-wrap: wrap; /* Allows cards to wrap on smaller screens */
+}
+
+.story-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 300px; /* Fixed width for card consistency */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Ensures image corners are contained */
+}
+
+.story-image {
+    width: 100%;
+    height: 180px; /* Fixed height for image consistency */
+    object-fit: cover; /* Ensures image fills the container without distortion */
+}
+
+.story-details {
+    padding: 20px;
+    flex-grow: 1; /* Pushes the button to the bottom */
+}
+
+.story-details h3 {
+    font-size: 1.1em;
+    color: var(--primary-green);
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.story-details p {
+    font-size: 0.95em;
+    line-height: 1.4;
+    color: var(--text-dark);
+}
+
+.story-details p strong {
+    font-weight: bold;
+}
+
+.read-more-button {
+    background-color: #F0F0F0; /* Light gray background */
+    color: var(--text-dark);
+    border: 1px solid #D0D0D0;
+    padding: 10px 0;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s;
+}
+
+.read-more-button:hover {
+    background-color: var(--secondary-green);
+    color: var(--text-light);
+    border-color: var(--secondary-green);
+}
+
+/* 4. Small adjustments to the main nav */
+/* (Assuming you update the 'Home' link in index.html to point to the index route) */
+.nav-links li a[href*="impact"] {
+    /* Optional: Highlight the active page */
+    border-bottom: 2px solid var(--secondary-green); 
+}

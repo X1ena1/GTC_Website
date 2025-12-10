@@ -16,14 +16,14 @@
             
             <nav class="login-nav">
                 <a href="/user-login">User Login</a>
-                <a href="/contractor-login">Contractor Login</a>
-            </nav>
+                <a href="{{ url_for('contractor_login') }}">Contractor Login</a>            </nav>
         </div>
 
         <nav class="main-nav">
             <div class="branding-title">SAVE BETTER</div>
             <ul class="nav-links">
                 <li><a href="/opportunities">Opportunities</a></li>
+                <li><a href="/impact">Impact</a></li>
                 <li><a href="/rebates">Rebates</a></li>
                 <li><a href="/about">About</a></li>
             </ul>
@@ -32,7 +32,7 @@
 
     <section class="hero-section">
         <div class="content-text">
-            <h2>Rebates That Save You **30%-50%**</h2>
+            <h2>Rebates That Save You 30%-50%</h2>
             <p>
                 Fund energy-efficient upgrades that reduce annual utility expenses and free budget for student programs.
             </p>
