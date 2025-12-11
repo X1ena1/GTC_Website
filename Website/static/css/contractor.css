@@ -1,8 +1,9 @@
 /* Add these styles to your contractor.css or main CSS file */
 
 .section-title {
-    color: #004d40; /* Dark green similar to your header */
+    color: #004d40; /* Dark green text */
     margin-bottom: 20px;
+    background-color: white; 
 }
 
 .table-container {

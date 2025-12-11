@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Review</title>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/application_review.css') }}">
+    </head>
+<body>
+    <header class="main-header">
+        </header>
+
+    <main class="content-area">
+        <div class="review-header">
+            <h2>Application Review</h2>
+        </div>
+
+        <section class="application-details">
+            <p><strong>EIA ID :</strong> {{ details.SOP_Number }}</p>
+            <p><strong>Department :</strong> {{ details.Department_ID }}</p>
+            <p><strong>Status :</strong> {{ details.Status }}</p>
+            <hr>
+            <p><strong>Project type :</strong> {{ details.Category }} (Building: {{ details.Building }})</p>
+            
+            <p><strong>Documents Uploaded :</strong> Proposal.pdf <button>View</button> Specs.docx <button>View</button></p>
+            <hr>
+        </section>
+
+        <form method="POST" action="{{ url_for('process_decision', application_id=details.SOP_Number) }}">
+            
+            <h3>Notes to Applicant :</h3>
+            <textarea name="notes_to_applicant" rows="5" placeholder="Enter comments, revisions required, or reasons for rejection..."></textarea>
+            
+            <div class="action-buttons">
+                <button type="submit" name="action" value="Approve" class="btn btn-approve">Approve</button>
+                <button type="submit" name="action" value="Request revision" class="btn btn-revision">Request revision</button>
+                <button type="submit" name="action" value="Reject" class="btn btn-reject">Reject</button>
+            </div>
+        </form>
+
+        <a href="{{ url_for('view_all_applications') }}" class="back-link">
+            &larr; Back
+        </a>
+    </main>
+</body>
+</html>

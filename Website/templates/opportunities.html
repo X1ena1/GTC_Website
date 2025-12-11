@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Rebate Opportunities</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" type="text/css"> 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/contractor.css') }}"> 
+</head>
+<body>
+    
+    <header class="main-header">
+        <div class="top-bar">
+            <div class="logo-area">
+            <img src="{{ url_for('static', filename='img/uh-logo.png') }}" alt="University of Hawai'i Manoa Logo">                
+            <h1>Energy Incentive Application System</h1>
+            </div>
+            
+            <nav class="login-nav">
+                {% if session.get('contractor_logged_in') or session.get('user_logged_in') %}
+                    <span class="logged-in-user">
+                        Welcome, {{ session.get('username') or session.get('user_username') }}!
+                    </span>
+                    <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('user_login') }}">User Login</a>
+                    <a href="{{ url_for('contractor_login') }}">Contractor Login</a>
+                {% endif %}
+            </nav>
+        </div>
+
+        <nav class="main-nav">
+            <div class="branding-title">SAVE BETTER</div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('impact') }}">Impact</a></li>
+                <li><a href="{{ url_for('rebates') }}">Rebates</a></li>
+                <li><a href="{{ url_for('about') }}">About</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main class="content-area">
+        <section class="dashboard-section">
+            <h2 class="section-title">Current Energy Rebate Opportunities</h2>
+            <p class="section-description">Browse the available programs and incentives for energy efficiency projects across campus departments.</p>
+
+            <div class="opportunity-filters">
+                <input type="text" placeholder="Search by Project Name, Category, or Sponsor..." class="search-input">
+                <select class="category-select">
+                    <option>Filter by Category</option>
+                    <option>Lighting</option>
+                    <option>HVAC</option>
+                    <option>Water Conservation</option>
+                </select>
+            </div>
+
+
+            <div class="opportunity-card">
+                <div class="opportunity-header">
+                    <h3>High Efficiency LED Retrofit Program (Phase 3)</h3>
+                </div>
+                <div class="opportunity-meta">
+                    <span>Category: <strong>Lighting</strong></span>
+                    <span>Max Rebate: <strong>$50,000</strong></span>
+                    <span>Sponsor: <strong>Facilities Management</strong></span>
+                    <span>Deadline: <strong>December 31, 2025</strong></span>
+                </div>
+                <p>Funding available for replacing older fluorescent or incandescent fixtures with new, certified high-efficiency LED lighting systems in academic buildings.</p>
+                <a href="{{ url_for('user_new_eia_application') }}" class="apply-btn">Apply Now</a>
+            </div>
+
+            <div class="opportunity-card">
+                <div class="opportunity-header">
+                    <h3>Smart Irrigation and Water Conservation Grants</h3>
+                </div>
+                <div class="opportunity-meta">
+                    <span>Category: <strong>Water Conservation</strong></span>
+                    <span>Max Rebate: <strong>$10,000</strong></span>
+                    <span>Sponsor: <strong>Housing Services</strong></span>
+                    <span>Deadline: <strong>Rolling</strong></span>
+                </div>
+                <p>Grants supporting the installation of smart irrigation controllers, low-flow fixtures, or water-efficient landscaping.</p>
+                <a href="{{ url_for('user_new_eia_application') }}" class="apply-btn">Apply Now</a>
+            </div>
+
+            <div class="opportunity-card closed">
+                <div class="opportunity-header">
+                    <h3 class="closed-title">HVAC Chiller Replacement Incentive (Closed)</h3>
+                </div>
+                <div class="opportunity-meta">
+                    <span>Category: <strong>HVAC</strong></span>
+                    <span>Deadline: <strong>CLOSED (10/1/2025)</strong></span>
+                </div>
+                <p>Incentive program for replacing aging chillers with new, high-SEER modular units. This opportunity is currently closed to new applications.</p>
+                <button class="apply-btn disabled-btn" disabled>Closed</button>
+            </div>
+            
+        </section>
+    </main>
+
+    </body>
+</html>

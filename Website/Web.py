@@ -59,8 +59,8 @@ def impact():
 
 @app.route('/opportunities')
 def opportunities():
-    """Renders the Opportunities page."""
-    return "<h1>Opportunities Page Coming Soon!</h1><p>This is where users can view available energy projects.</p>"
+    """Renders the Opportunities page template."""
+    return render_template('opportunities.html')
 
 @app.route('/rebates')
 def rebates():
@@ -70,7 +70,7 @@ def rebates():
 @app.route('/about')
 def about():
     """Renders the About page."""
-    return "<h1>About Page Coming Soon!</h1><p>Information about the system and the University program.</p>"
+    return render_template('about.html')
 
 @app.route('/forgot-password')
 def forgot_password():
@@ -121,7 +121,7 @@ def contractor_dashboard():
         return redirect(url_for('contractor_login'))
 
     conn = get_db_connection()
-    status_counts = {'Pending': 0, 'Approved': 0, 'Rejected': 0, 'Total': 0}
+    status_counts = {'Pending': 0, 'Approved': 0, 'Rejected': 0, 'Revision Requested': 0, 'Total': 0}
     status_feed_items = []  # Initialize the list for the feed
 
     if conn is None:
@@ -131,44 +131,44 @@ def contractor_dashboard():
     try:
         cursor = conn.cursor(dictionary=True)  # Use dictionary=True for easy access by column name
         
-        # 1. Query for Status Counts (USING APPLICANT)
+        # 1. Query for Status Counts (NOW USING REBATE and 'Status' column)
         query_counts = """
-        SELECT status, COUNT(*)
-        FROM APPLICANT
-        GROUP BY status;
+        SELECT Status, COUNT(*)
+        FROM REBATE
+        GROUP BY Status;
         """
         cursor.execute(query_counts)
         results = cursor.fetchall()
 
         total = 0
         for row in results:
-            status_key = row['status'].strip().capitalize()
+            # Note: We capitalize the key to match the dict keys: 'Pending', 'Approved', 'Rejected'
+            status_key = row['Status'].strip()
             if status_key in status_counts:
                 status_counts[status_key] = row['COUNT(*)']
             total += row['COUNT(*)']
             
         status_counts['Total'] = total
         
-        # 2. Query for Status Feed Items (Last 5 Recent Applications/Updates) (USING APPLICANT)
+        # 2. Query for Status Feed Items (Last 5 Recent Rebates)
         query_feed = """
-        SELECT id, project_title, status
-        FROM APPLICANT
-        ORDER BY id DESC
+        SELECT SOP_Number, Building, Status
+        FROM REBATE
+        ORDER BY SOP_Number DESC
         LIMIT 5;
         """
         cursor.execute(query_feed)
         feed_results = cursor.fetchall()
         
-        # Process results into a simple list of strings for the template
+        # Process results into a simple list of strings for the template (USING REBATE COLUMNS)
         for item in feed_results:
-            # Note: Assuming APPLICANT has 'id', 'project_title', and 'status' columns
-            feed_message = f"EIA #{item['id']} ({item['project_title']}) is currently: **{item['status']}**"
+            feed_message = f"Rebate ID #{item['SOP_Number']} ({item['Building']}) is currently: **{item['Status']}**"
             status_feed_items.append(feed_message)
 
         cursor.close()
         
     except mysql.connector.Error as err:
-        print(f"Database query error fetching dashboard data from APPLICANT: {err}")
+        print(f"Database query error fetching dashboard data from REBATE: {err}")
         
     finally:
         if conn and conn.is_connected():
@@ -207,7 +207,8 @@ def user_dashboard():
     if 'user_logged_in' not in session or not session['user_logged_in']:
         return redirect(url_for('user_login'))
 
-    username = session.get('user_username', 'Demo User')
+    # NOTE: The username here must match the data in the Department_ID column (e.g., '1', '2', '3')
+    username = session.get('user_username', 'Demo User') 
     user_applications = []
     
     conn = get_db_connection()
@@ -217,20 +218,21 @@ def user_dashboard():
     try:
         cursor = conn.cursor(dictionary=True)
         
-        # Query to get the user's specific applications (USING APPLICANT)
+        # Query to get the user's specific applications (USING REBATE and Department_ID)
         query = """
-        SELECT id, project_title, status, application_sponsor, submitted_by
-        FROM APPLICANT
-        WHERE submitted_by = %s 
-        ORDER BY id DESC
+        SELECT SOP_Number, Category, Status, Building, Submission_Date, Office_Notes
+        FROM REBATE
+        WHERE Department_ID = %s 
+        ORDER BY Submission_Date DESC
         LIMIT 10;
         """
+        # Execute the query, passing the username (which should be the Department_ID or Name)
         cursor.execute(query, (username,)) 
         user_applications = cursor.fetchall()
         cursor.close()
         
     except mysql.connector.Error as err:
-        print(f"Database query error fetching user dashboard applications from APPLICANT: {err}")
+        print(f"Database query error fetching user dashboard applications from REBATE: {err}")
         
     finally:
         if conn and conn.is_connected():
@@ -270,15 +272,15 @@ def user_new_eia_application():
         return redirect(url_for('user_login'))
 
 
-# 6. VIEW ALL APPLICATIONS ROUTE (Contractor View) - FIXED TO QUERY 'APPLICANT' TABLE
+# 6. VIEW ALL APPLICATIONS ROUTE (Contractor View) - FIXED TO QUERY 'REBATE' TABLE
 @app.route('/view-all-applications')
 def view_all_applications():
-    """Fetches all applications data for the contractor view (from APPLICANT table)."""
+    """Fetches all applications data for the contractor view (from REBATE table)."""
     if 'contractor_logged_in' not in session or not session['contractor_logged_in']:
         return redirect(url_for('contractor_login'))
     
     conn = get_db_connection()
-    applications = [] 
+    applications = [] # Variable name matching the HTML loop
     
     if conn is None:
         return render_template('view_all_applications.html', applications=applications)
@@ -286,28 +288,28 @@ def view_all_applications():
     try:
         cursor = conn.cursor(dictionary=True)
         
-        # FIXED: Querying the 'APPLICANT' table to get project data
+        # FINAL: Querying the 'REBATE' table with the required columns
         query = """
-        SELECT id, department, project_title, status, application_sponsor, submitted_by
-        FROM APPLICANT
-        ORDER BY id DESC
+        SELECT SOP_Number, Category, Status, Building, Submission_Date, Department_ID, Sponsor_ID
+        FROM REBATE
+        ORDER BY Submission_Date DESC
         """
         cursor.execute(query)
         applications = cursor.fetchall()
         cursor.close()
         
     except mysql.connector.Error as err:
-        # NOTE: This error will occur if the APPLICANT table is missing columns like 'project_title' or 'status'
-        print(f"Database query error in view_all_applications (APPLICANT table): {err}")
+        print(f"Database query error in view_all_applications (REBATE table): {err}")
         
     finally:
         if conn and conn.is_connected():
             conn.close()
 
+    # Pass the data using the variable name 'applications'
     return render_template('view_all_applications.html', applications=applications)
 
 
-# 7. CONTRACTOR'S EIA FORM SUBMISSION (POST) (USING APPLICANT)
+# 7. CONTRACTOR'S EIA FORM SUBMISSION (POST) (USING REBATE)
 @app.route('/submit-eia', methods=['POST'])
 def submit_eia():
     """Handles the submission of the New EIA Application form data (Contractor submits)."""
@@ -321,37 +323,24 @@ def submit_eia():
     try:
         cursor = conn.cursor()
         
-        # 1. Get Form Data
-        department = request.form.get('department')
-        project_title = request.form.get('project_title')
-        project_type = request.form.get('project_type')
-        sponsor = request.form.get('sponsor')
-        description = request.form.get('description')
-        uploaded_file_path = "N/A"
+        # 1. Get Form Data (Mapping old form fields to new REBATE columns)
+        category = request.form.get('project_type')
+        building = request.form.get('building') 
+        sponsor_id = request.form.get('sponsor_id') 
+        department_id = request.form.get('department_id') 
         
-        # 2. Handle File Upload (Code omitted for brevity, but remains in the actual file)
-        if 'documents' in request.files:
-            file = request.files['documents']
-            if file and file.filename != '':
-                filename = secure_filename(file.filename)
-                full_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(full_path)
-                uploaded_file_path = os.path.join('static/uploads', filename).replace('\\', '/')
-
-        # 3. Prepare and Execute SQL INSERT (INTO APPLICANT)
+        # 2. Prepare and Execute SQL INSERT (INTO REBATE)
         sql = """
-        INSERT INTO APPLICANT
-        (department, project_title, project_type, application_sponsor, project_description, supporting_documents_path, status, submitted_by)
-        VALUES (%s, %s, %s, %s, %s, %s, 'Pending', %s)
+        INSERT INTO REBATE
+        (Category, Status, Building, Submission_Date, Department_ID, Sponsor_ID)
+        VALUES (%s, %s, %s, NOW(), %s, %s) 
         """
         data = (
-            department,
-            project_title,
-            project_type,
-            sponsor,
-            description,
-            uploaded_file_path,
-            session.get('username', 'Unknown Contractor') # Tracks Contractor username
+            category,
+            'Pending',
+            building,
+            department_id,
+            sponsor_id
         )
         
         cursor.execute(sql, data)
@@ -361,7 +350,7 @@ def submit_eia():
         return redirect(url_for('contractor_dashboard'))
 
     except mysql.connector.Error as err:
-        print(f"Database insertion error into APPLICANT: {err}")
+        print(f"Database insertion error into REBATE: {err}")
         conn.rollback()
         return "Error submitting application to database.", 500
         
@@ -383,7 +372,7 @@ def user_submit_eia():
     try:
         cursor = conn.cursor()
         
-        # 1. Get Form Data
+        # 1. Get Form Data (This assumes the user submission should still go to APPLICANT)
         department = request.form.get('department')
         project_title = request.form.get('project_title')
         project_type = request.form.get('project_type')
@@ -433,7 +422,109 @@ def user_submit_eia():
             conn.close()
 
 
-# --- REPORT AND ADMIN ROUTES (NEWLY ADDED PLACEHOLDERS) ---
+# --- NEW: APPLICATION REVIEW ROUTES ---
+
+@app.route('/review-application/<string:application_id>', methods=['GET'])
+def review_application(application_id):
+    """
+    Renders the review form (matching your mockup) for a single application.
+    The application_id is the SOP_Number from the REBATE table.
+    """
+    if 'contractor_logged_in' not in session:
+        return redirect(url_for('contractor_login'))
+
+    conn = get_db_connection()
+    application_details = None
+    
+    if conn is None:
+        return "Database connection error.", 500
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        
+        # Fetch details based on the ID (SOP_Number)
+        query = """
+        SELECT SOP_Number, Category, Building, Department_ID, Status
+        FROM REBATE
+        WHERE SOP_Number = %s;
+        """
+        cursor.execute(query, (application_id,))
+        application_details = cursor.fetchone()
+        cursor.close()
+        
+        if not application_details:
+            return "Application not found.", 404
+        
+    except mysql.connector.Error as err:
+        print(f"Database query error fetching application details: {err}")
+        return "Error fetching application details.", 500
+        
+    finally:
+        if conn and conn.is_connected():
+            conn.close()
+
+    # Pass details to the new HTML template
+    return render_template('application_review_form.html', details=application_details)
+
+
+@app.route('/process-decision/<string:application_id>', methods=['POST'])
+def process_decision(application_id):
+    """
+    Handles the contractor's decision (Approve/Reject/Revision) and updates the database.
+    This change is immediately visible in phpMyAdmin.
+    """
+    if 'contractor_logged_in' not in session:
+        return redirect(url_for('contractor_login'))
+
+    conn = get_db_connection()
+    if conn is None:
+        return "Database connection error. Decision not saved.", 500
+
+    try:
+        cursor = conn.cursor()
+        
+        # Get data from the submitted form
+        decision = request.form.get('action')     # 'Approve', 'Request revision', or 'Reject'
+        notes = request.form.get('notes_to_applicant')
+        
+        # Map the action button text to a database Status
+        if decision == 'Approve':
+            new_status = 'Approved'
+        elif decision == 'Reject':
+            new_status = 'Rejected'
+        elif decision == 'Request revision':
+            new_status = 'Revision Requested'
+        else:
+            return "Invalid action selected.", 400
+
+        # UPDATE query to modify the Status and Office_Notes in the REBATE table.
+        # This modification is immediately reflected in the database visible in phpMyAdmin.
+        sql = """
+        UPDATE REBATE
+        SET Status = %s, 
+            Office_Notes = %s
+        WHERE SOP_Number = %s
+        """
+        data = (new_status, notes, application_id)
+        
+        cursor.execute(sql, data)
+        conn.commit()
+        cursor.close()
+        
+        # Redirect back to the list of all applications
+        return redirect(url_for('view_all_applications'))
+
+    except mysql.connector.Error as err:
+        print(f"Database update error in process_decision: {err}")
+        conn.rollback()
+        return "Error processing application decision.", 500
+        
+    finally:
+        if conn and conn.is_connected():
+            conn.close()
+
+
+# --- REPORT AND ADMIN ROUTES (PLACEHOLDERS) ---
 
 @app.route('/energy-report')
 def energy_report():

@@ -1,0 +1,170 @@
+/*
+ * File: application_review.css
+ * Styles specifically for the contractor's application review page, 
+ * matching the University of Hawaii Manoa green theme and layout mockup.
+ */
+
+/* --- General Layout and Container --- */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4; /* Light gray background */
+    margin: 0;
+    padding: 0;
+}
+
+/* Ensure the main content block is centered and contained */
+main.content-area {
+    width: 90%;
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px 40px;
+    background-color: #fff; /* White content background */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+/* --- Header Styling (Mimicking the dark green bar) --- */
+/* If you have global styles for this, you can omit this block, but it ensures the look: */
+.main-header {
+    background-color: #27563d; /* Dark University of Hawaii green */
+    color: white;
+    padding: 10px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    /* Add any other specific header styles for the logo/nav */
+}
+
+/* --- Review Header and Data Display --- */
+
+.review-header h2 {
+    font-size: 2em;
+    color: #27563d; /* Heading color matches header theme */
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ccc;
+    font-weight: 500;
+}
+
+.application-details p {
+    font-size: 1.1em;
+    margin: 15px 0;
+    line-height: 1.5;
+    /* Styles to replicate the look of data fields being side-by-side */
+    display: inline-block;
+    margin-right: 40px;
+}
+
+.application-details p strong {
+    font-weight: 600;
+    color: #444;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 20px 0;
+}
+
+/* --- Document Buttons --- */
+.application-details button {
+    background-color: #e6e6e6; /* Light gray button background */
+    border: 1px solid #ccc;
+    padding: 6px 15px;
+    cursor: pointer;
+    margin-left: 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+}
+
+.application-details button:hover {
+    background-color: #d4d4d4;
+}
+
+/* --- Notes Area --- */
+
+h3 {
+    font-size: 1.2em;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+textarea[name="notes_to_applicant"] {
+    width: 100%;
+    min-height: 120px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box; /* Ensures padding doesn't widen the element */
+    font-size: 1em;
+    resize: vertical; 
+}
+
+/* --- Action Buttons (Approve, Request revision, Reject) --- */
+.action-buttons {
+    display: flex;
+    gap: 20px;
+    margin-top: 30px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #eee; /* Separator line after buttons */
+}
+
+.btn {
+    padding: 12px 25px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    min-width: 150px; /* Ensure buttons are wide enough */
+}
+
+/* Approve Button (Green) */
+.btn-approve {
+    background-color: #27563d; /* UH Primary Green */
+    color: white;
+}
+.btn-approve:hover {
+    background-color: #1a3c2a;
+}
+
+/* Request Revision Button (Neutral/Blue) */
+.btn-revision {
+    background-color: #007bff; /* Blue */
+    color: white;
+}
+.btn-revision:hover {
+    background-color: #0056b3;
+}
+
+/* Reject Button (Red) */
+.btn-reject {
+    background-color: #dc3545; /* Red */
+    color: white;
+}
+.btn-reject:hover {
+    background-color: #c82333;
+}
+
+/* --- Back Link --- */
+.back-link {
+    display: inline-block;
+    margin-top: 25px;
+    padding: 10px 20px;
+    text-decoration: none;
+    color: #444;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    transition: all 0.2s;
+}
+
+.back-link:hover {
+    background-color: #e9e9e9;
+    color: #27563d;
+}

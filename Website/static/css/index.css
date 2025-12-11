@@ -627,3 +627,107 @@ a {
 .dropdown:hover .dropdown-content {
     display: block;
 }
+
+/*
+ * === Styles for Opportunities Page (Merged into index.css for consistency) ===
+ */
+
+/* --- Filter & Search Bar Layout --- */
+.opportunity-filters {
+    margin-bottom: 30px;
+    padding: 15px;
+    background: #f0f0f0;
+    border-radius: 5px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.search-input {
+    flex-grow: 1; /* Allows the search bar to take up most of the space */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.category-select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+/* --- Opportunity Card Styling --- */
+.opportunity-card {
+    background: #fff;
+    border-left: 5px solid #27563d; /* Highlight border with UH Green */
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transition: transform 0.2s;
+}
+
+.opportunity-card:hover:not(.closed) {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+}
+
+.opportunity-header {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.opportunity-header h3 {
+    color: #27563d;
+    margin-top: 0;
+    font-size: 1.6em;
+}
+
+.opportunity-meta {
+    font-size: 0.95em;
+    color: #666;
+    margin-bottom: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+}
+
+.opportunity-meta strong {
+    color: #333;
+    font-weight: 600;
+}
+
+/* --- Call to Action Button --- */
+.apply-btn {
+    background-color: #27563d; /* UH Green */
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.2s;
+    font-weight: bold;
+    border: none; /* Treat as a primary button */
+}
+.apply-btn:hover {
+    background-color: #1a3c2a;
+}
+
+/* --- Styling for Closed/Disabled Opportunities --- */
+.opportunity-card.closed {
+    opacity: 0.6;
+    border-left: 5px solid #aaa;
+    background-color: #fcfcfc;
+}
+
+.closed-title {
+    color: #666 !important;
+}
+.disabled-btn {
+    background-color: #aaa !important;
+    cursor: not-allowed;
+    pointer-events: none;
+}

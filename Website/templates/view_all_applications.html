@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View All Applicants (Units)</title>
+    <title>View All Rebate Applications</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}"> 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/contractor.css') }}"> 
 </head>
@@ -22,36 +22,43 @@
 
     <main class="content-area">
         <section class="dashboard-section">
-            <h2 class="section-title">🏢 University Units / Applicants Directory</h2>
-            <p class="section-description">A list of all registered units/applicants in the system.</p>
+            <h2 class="section-title">Applications </h2>
+            <p class="section-description">A comprehensive list of all submitted energy incentive applications (rebates).</p>
 
             <div class="table-container">
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Department Name</th>
-                            <th>School</th>
-                            <th>District</th>
-                            <th>Contact Email</th>
+                            <th>SOP Number</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Building</th>
+                            <th>Submission Date</th>
+                            <th>Department ID</th>
+                            <th>Sponsor ID</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for dept in departments %}
+                        {% for app in applications %} 
                         <tr>
-                            <td>{{ dept.Department_ID }}</td>
-                            <td>{{ dept.Department_Name }}</td>
-                            <td>{{ dept.School }}</td>
-                            <td>{{ dept.District }}</td>
-                            <td>{{ dept.Contact_Email }}</td>
+                            <td>{{ app.SOP_Number }}</td>
+                            <td>{{ app.Category }}</td>
+                            <td>{{ app.Status }}</td>
+                            <td>{{ app.Building }}</td>
+                            <td>{{ app.Submission_Date }}</td>
+                            <td>{{ app.Department_ID }}</td>
+                            <td>{{ app.Sponsor_ID }}</td>
                             <td>
-                                <button class="action-small-btn view-btn">View Details</button>
-                            </td>
+                                <a href="{{ url_for('review_application', application_id=app.SOP_Number) }}" 
+                                   class="action-small-btn view-btn">
+                                    View Details
+                                </a>
+                                </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="6" class="no-data">No unit or applicant data found in the database.</td>
+                            <td colspan="8" class="no-data">No rebate application data found in the database.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

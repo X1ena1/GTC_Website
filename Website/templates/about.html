@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About the Rebate Program - Energy Incentive System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" type="text/css"> 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/contractor.css') }}"> 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}"> 
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="top-bar">
+            <div class="logo-area">
+                <img src="{{ url_for('static', filename='img/uh-logo.png') }}" alt="University of Hawai'i Manoa Logo">
+                <h1>Energy Incentive Application System</h1>
+            </div>
+            
+            <nav class="login-nav">
+                {% if session.get('contractor_logged_in') or session.get('user_logged_in') %}
+                    <span class="logged-in-user">
+                        Welcome, {{ session.get('username') or session.get('user_username') }}!
+                    </span>
+                    <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('user_login') }}">User Login</a>
+                    <a href="{{ url_for('contractor_login') }}">Contractor Login</a>
+                {% endif %}
+            </nav>
+        </div>
+
+        <nav class="main-nav">
+            <div class="branding-title">SAVE BETTER</div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('opportunities') }}">Opportunities</a></li>
+                <li><a href="{{ url_for('impact') }}">Impact</a></li>
+                <li><a href="{{ url_for('rebates') }}">Rebates</a></li>
+                </ul>
+        </nav>
+    </header>
+    <main class="content-area about-container">
+        <section class="info-section">
+            <h2 class="section-title" style="border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-bottom: 30px;">
+                About the Energy Incentive Rebate Program
+            </h2>
+
+            <div class="mission-statement">
+                <h3>Our Mission</h3>
+                <p>
+                    The University of Hawai'i Energy Incentive Rebate Program is committed to fostering a sustainable campus environment by incentivizing energy-efficient upgrades across all departments. Our goal is to reduce the University's overall utility consumption, lower operational costs, and reinvest savings into academic and student services.
+                </p>
+            </div>
+            
+            <hr>
+
+            <div class="rebates-definition">
+                <h3>What is an Energy Rebate?</h3>
+                <p>
+                    An energy rebate is a financial incentive offered to University departments to cover a significant portion (typically 30% to 50%) of the cost associated with installing approved, energy-saving equipment.  These incentives are funded by internal energy savings pools and are designed to make high-efficiency projects immediately financially viable.
+                </p>
+                <div class="key-points">
+                    <h4>Key Objectives:</h4>
+                    <ul>
+                        <li><i class="fas fa-money-bill-wave"></i> **Cost Reduction:** Dramatically lower the upfront capital required for major infrastructure upgrades (HVAC, Lighting, Water Systems).</li>
+                        <li><i class="fas fa-leaf"></i> **Sustainability:** Accelerate the replacement of old, inefficient systems with modern, eco-friendly alternatives, supporting the University's carbon neutrality goals.</li>
+                        <li><i class="fas fa-chart-line"></i> **Budget Freedom:** Generate long-term utility savings that can be redirected back to the department's core educational or research missions.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="program-process">
+                <h3>How to Participate</h3>
+                <p>
+                    Participation is open to all University departments. The process is streamlined through this system:
+                </p>
+                <ol>
+                    <li>**Browse Opportunities:** Review the **<a href="{{ url_for('opportunities') }}">Opportunities page</a>** for current eligible rebates (e.g., LED lighting, Chiller upgrades, Smart Controls).</li>
+                    <li>**Submit Application:** A contractor or department submits a formal application detailing the project and estimated savings.</li>
+                    <li>**Review & Approval:** The Facilities Management review board assesses the technical merits and financial viability.</li>
+                    <li>**Rebate Disbursement:** Upon project completion and verification, the pre-approved rebate funds are disbursed.</li>
+                </ol>
+            </div>
+            
+        </section>
+    </main>
+
+</body>
+</html>

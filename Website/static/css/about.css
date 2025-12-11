@@ -1,0 +1,56 @@
+/* about.css */
+
+.about-container {
+    width: 90%;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.mission-statement, .rebates-definition, .program-process {
+    margin-bottom: 30px;
+}
+
+.mission-statement h3, .rebates-definition h3, .program-process h3 {
+    color: #27563d; /* UH Green */
+    font-size: 1.6em;
+    margin-bottom: 15px;
+}
+
+.rebates-definition p {
+    font-style: italic;
+    color: #333;
+    line-height: 1.6;
+}
+
+.key-points h4 {
+    margin-top: 25px;
+    color: #444;
+    font-weight: bold;
+}
+
+.key-points ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.key-points li {
+    background: #f7f7f7;
+    padding: 10px;
+    margin: 8px 0;
+    border-left: 3px solid #007bff; /* Secondary color highlight */
+    font-size: 0.95em;
+}
+
+.key-points i {
+    margin-right: 10px;
+    color: #007bff;
+}
+
+ol {
+    margin-left: 20px;
+    line-height: 1.6;
+}

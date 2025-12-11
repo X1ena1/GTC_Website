@@ -135,14 +135,13 @@
             <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <img src="{{ url_for('static', filename='img/uh-logo.png') }}" alt="University of Hawai'i Manoa Logo" style="height: 40px;">
-                    <span style="font-size: 1.2em; font-weight: bold;">UNIVERSITY of HAWAI'I MĀNOA</span>
                 </div>
                 
                 <a href="{{ dashboard_url }}" style="color: #fff; text-decoration: none; align-self: center; font-weight: bold;">
                     &larr; Go back to Dashboard
                 </a>
                 
-                <img src="https://i.imgur.com/8Q7kY2b.png" alt="Greentrack Systems Consulting Logo" style="height: 40px; filter: brightness(0) invert(1);">
+                <img src="{{ url_for('static', filename='img/gtc.png') }}" alt="Greentrack Systems Consulting Logo" style="height: 40px; filter: brightness(0) invert(1);">
             </div>
         </header>
         
