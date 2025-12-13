@@ -830,3 +830,20 @@ a {
     cursor: not-allowed;
     pointer-events: none;
 }
+
+/* --- Footer Logo Styling (To be added to index.css) --- */
+
+/* Ensure the logo and text are vertically aligned */
+.footer-col.contact-info h3 {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Increased gap for better spacing */
+}
+
+/* Define the size for the GreenTrack Consulting logo */
+.footer-col.contact-info .gtc-logo {
+    height: 50px; /* Increased the height for better visibility */
+    width: auto;
+    /* Optional: Add a light filter if the logo needs to stand out against the dark background */
+    /* filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4)); */
+}

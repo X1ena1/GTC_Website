@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Energy Incentive Application System - Save Better</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" type="text/css">
+    <style>
+        /* Add a small CSS adjustment to make the logo align nicely with the text */
+        .contact-info h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Space between logo and text */
+        }
+        .contact-info .gtc-logo {
+            height: 25px; /* Adjust size as needed */
+            width: auto;
+        }
+    </style>
     </head>
 <body>
 
@@ -103,10 +115,13 @@
         <div class="container footer-content">
             
             <div class="footer-col contact-info">
-                <h3>Contact GreenTrack Systems Consulting</h3>
+                <h3>
+                    <img src="{{ url_for('static', filename='img/gtc.png') }}" alt="GreenTrack Systems Consulting Logo" class="gtc-logo">
+                    GreenTrack Systems Consulting
+                </h3>
                 <p>For project inquiries, questions, or next steps:</p>
                 
-                <p><strong>Team Leader:</strong> Alexander Ah-Tye</p>
+                <p><strong>CEO:</strong> Alexander Ah-Tye</p>
                 <p><strong>Email:</strong> <a href="mailto:greentrack@uh.edu">greentrack@uh.edu</a></p>
                 <p><strong>Phone:</strong> (808) 555-SAVE</p>
             </div>

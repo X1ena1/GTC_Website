@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" type="text/css">
     <style>
         /* This is temporary custom styling, you should move it to index.css later */
+        /* ... (Keep your existing styles here) ... */
         .user-header-actions {
             display: flex;
             justify-content: space-between;
@@ -65,8 +66,19 @@
         }
 
         .status-Pending { color: #FFC000; font-weight: bold; }
-        .status-Approved { color: var(--secondary-green); font-weight: bold; }
+        .status-Approved { color: #4CAF50; font-weight: bold; } /* Using a standard green */
+        .status-Draft { color: #3498DB; font-weight: bold; } /* Blue for drafts */
         .status-Rejected { color: #C00000; font-weight: bold; }
+        
+        /* New style for the delete button */
+        .delete-btn {
+            padding: 5px 10px;
+            background-color: #C00000;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.85em;
+        }
     </style>
 </head>
 <body>
@@ -93,6 +105,16 @@
 
     <main class="dashboard-content-area container">
         
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                    {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
         <div class="user-header-actions">
             <h1>Your Project Dashboard</h1>
             <div class="user-action-btn-group">
@@ -107,9 +129,9 @@
             <table class="application-table">
                 <thead>
                     <tr>
-                        <th>EIA #</th>
-                        <th>Project Title</th>
-                        <th>Sponsor</th>
+                        <th>EIA # (SOP)</th>
+                        <th>Project Category</th>
+                        <th>Building ID</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -118,13 +140,23 @@
                     {% if applications %}
                         {% for app in applications %}
                         <tr>
-                            <td>{{ app.id }}</td>
-                            <td>{{ app.project_title }}</td>
-                            <td>{{ app.application_sponsor }}</td>
-                            <td class="status-{{ app.status }}">
-                                {{ app.status }}
+                            <td>{{ app.SOP_Number }}</td> 
+                            <td>{{ app.Category }}</td>
+                            <td>{{ app.Building }}</td>
+                            <td class="status-{{ app.Status }}">
+                                {{ app.Status }}
                             </td>
-                            <td><a href="#">View Details</a></td> 
+                            <td>
+                                {% if app.Status == 'Draft' %}
+                                    <a href="{{ url_for('delete_draft', sop_number=app.SOP_Number) }}" 
+                                       class="delete-btn"
+                                       onclick="return confirm('Are you sure you want to delete draft {{ app.SOP_Number }}?');">
+                                        Delete Draft
+                                    </a>
+                                    {% else %}
+                                    <a href="#">View Details</a>
+                                {% endif %}
+                            </td> 
                         </tr>
                         {% endfor %}
                     {% else %}

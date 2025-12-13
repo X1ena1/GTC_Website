@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Energy Report</title>
+    <title>Project Report</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" type="text/css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/report_styles.css') }}" type="text/css">
 </head>
@@ -42,7 +42,7 @@
     <main class="dark-report-page">
         <div class="report-container">
             <div class="report-header">
-                <h2>Energy Campaign Performance Report</h2>
+                <h2>Comprehensive Energy Project Status Report</h2>
             </div>
             
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -55,40 +55,52 @@
                 {% endif %}
             {% endwith %}
 
-            {% if metrics %}
+            {% if projects %}
                 <table class="reports-table">
                     <thead>
                         <tr>
-                            <th>Campaign Name</th>
-                            <th>Type</th>
-                            <th>Total Applications</th>
-                            <th>Approved Projects</th>
-                            <th>Total Approved Rebates</th>
+                            <th>ID</th>
+                            <th>Submitting Department</th>
+                            <th>Category</th>
+                            <th>Building</th>
+                            <th>Submission Date</th>
+                            <th>Status</th>
+                            <th>Approved Amount</th>
+                            <th>Disbursed Date</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for campaign in metrics %}
+                        {% for project in projects %}
                         <tr>
-                            <td>{{ campaign.Campaign_Name }}</td>
-                            <td>{{ campaign.Campaign_Type }}</td>
-                            <td>{{ campaign.Total_Applications }}</td>
+                            <td>{{ project.SOP_Number }}</td>
+                            <td>{{ project.Department }}</td>
+                            <td>{{ project.Category }}</td>
+                            <td>{{ project.Building }}</td>
+                            <td>{{ project.Submission_Date }}</td>
                             
                             <td>
-                                <span class="status-approved-count">
-                                    {{ campaign.Approved_Applications }}
+                                <span class="status-{{ project.Status | lower | replace(' ', '-') }}">
+                                    {{ project.Status }}
                                 </span>
                             </td>
                             
                             <td>
-                                ${{ campaign.Total_Approved_Rebates | round(2) }}
+                                ${{ project.Approved_Amount | round(2) }}
                             </td>
                             
+                            <td>
+                                {% if project.Disbursed_Date %}
+                                    {{ project.Disbursed_Date }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             {% else %}
-                <p class="no-data-message">No campaign data or metrics found in the system.</p>
+                <p class="no-data-message">No project applications found in the system.</p>
             {% endif %}
             
         </div>

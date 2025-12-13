@@ -6,86 +6,97 @@
     <title>New Energy Incentive Application</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" type="text/css">
     <style>
-        /* --- Styles specific to the New EIA Application Form --- */
-        
-        body {
-            background-color: #38704D; /* Primary green background from the mockup */
+        /* Define a color palette for a clean look */
+        :root {
+            --background-color: #f7f7f7;
+            --form-bg-color: #ffffff;
+            --header-color: #38704D; /* UH Green */
+            --primary-text: #333;
+            --input-border: #ccc;
+            --submit-color: #4CAF50; /* Green */
+            --draft-color: #4682B4;  /* Steel Blue */
         }
         
+        body {
+            background-color: var(--background-color); 
+            color: var(--primary-text); 
+            font-family: Arial, sans-serif;
+        }
+
+        /* Container and Header */
         .eia-form-container {
             width: 90%;
-            max-width: 800px;
+            max-width: 900px;
             margin: 40px auto;
-            background-color: #38704D; 
-            color: #fff; /* White text for contrast */
-            padding: 20px;
-            border-radius: 5px;
+            background-color: var(--form-bg-color); 
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         .eia-form-header {
+            background-color: var(--header-color);
+            color: white;
+            padding: 20px;
+            margin: -30px -30px 30px -30px; /* Expands to container edges */
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
             text-align: center;
-            padding: 20px 0 40px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-            margin-bottom: 30px;
         }
 
         .eia-form-header h1 {
             font-size: 1.8em;
-            letter-spacing: 1px;
-            font-weight: 500;
+            margin: 0;
+            font-weight: 600;
         }
-
+        
+        /* Form Layout */
         .eia-form-content {
             display: grid;
-            grid-template-columns: 200px 1fr; /* Two columns: Label and Input */
-            gap: 20px 15px;
+            grid-template-columns: 200px 1fr; /* 200px label width */
+            gap: 25px 20px;
             align-items: center;
         }
-        
+
         .form-label {
-            font-size: 1.1em;
+            font-size: 1em;
             font-weight: 500;
             text-align: right;
-            padding-right: 10px;
-        }
-
-        /* Styling for all input types */
-        .eia-form-content input[type="text"],
-        .eia-form-content select {
-            width: 100%;
-            padding: 8px 10px;
-            border: 1px solid #777;
-            border-radius: 4px;
-            background-color: #2e5c40; /* Slightly darker input background */
-            color: #fff;
-        }
-
-        /* File Upload Row */
-        .upload-row {
-            grid-column: 2 / 3; /* Span the input column */
-            display: flex;
-            gap: 10px;
-            align-items: center;
+            padding-right: 15px;
+            color: var(--primary-text);
         }
         
-        /* Textarea for Project Description */
+        /* Input Styling */
+        .eia-form-content input[type="text"],
+        .eia-form-content select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .eia-form-content input:focus,
+        .eia-form-content select:focus,
+        textarea:focus {
+            border-color: var(--header-color);
+            outline: none;
+            box-shadow: 0 0 5px rgba(56, 112, 77, 0.3);
+        }
+
         .description-label {
             grid-column: 1 / 2;
             text-align: right;
-            align-self: start; /* Align label to the top of the description box */
+            align-self: start; 
             padding-top: 10px;
         }
-
+        
         textarea {
-            grid-column: 2 / 3;
-            width: 100%;
-            height: 200px;
-            padding: 10px;
-            border: 1px solid #777;
-            border-radius: 4px;
+            height: 150px;
             resize: vertical;
-            background-color: #2e5c40;
-            color: #fff;
         }
 
         /* Form Actions (Buttons) */
@@ -93,36 +104,40 @@
             grid-column: 1 / 3;
             display: flex;
             justify-content: flex-end;
-            gap: 20px;
-            margin-top: 30px;
+            gap: 15px;
+            margin-top: 40px;
         }
 
         .action-button {
-            padding: 10px 30px;
+            padding: 12px 30px;
             font-size: 1em;
             font-weight: bold;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: background-color 0.2s, box-shadow 0.2s;
         }
 
         .submit-btn {
-            background-color: #6AA84F; /* Secondary Green */
+            background-color: var(--submit-color); 
             color: #fff;
         }
 
         .submit-btn:hover {
-            background-color: #5C9143;
+            background-color: #449548;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
         .draft-btn {
-            background-color: #4CAF50; /* A different shade of green for contrast */
+            background-color: var(--draft-color); 
             color: #fff;
         }
 
         .draft-btn:hover {
-            background-color: #45a049;
+            background-color: #3f79a8;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
         
     </style>
@@ -131,63 +146,71 @@
 
     <div class="eia-form-container">
         
-        <header class="main-header" style="background: none; color: #fff;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <img src="{{ url_for('static', filename='img/uh-logo.png') }}" alt="University of Hawai'i Manoa Logo" style="height: 40px;">
-                </div>
-                
-                <a href="{{ dashboard_url }}" style="color: #fff; text-decoration: none; align-self: center; font-weight: bold;">
-                    &larr; Go back to Dashboard
-                </a>
-                
-                <img src="{{ url_for('static', filename='img/gtc.png') }}" alt="Greentrack Systems Consulting Logo" style="height: 40px; filter: brightness(0) invert(1);">
-            </div>
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <a href="{{ url_for('user_dashboard') }}" style="color: var(--header-color); text-decoration: none; font-weight: bold; font-size: 0.9em;">
+                &larr; Back to Dashboard
+            </a>
+            <img src="{{ url_for('static', filename='img/uh-logo.png') }}" alt="University of Hawai'i Manoa Logo" style="height: 35px;">
         </header>
         
         <div class="eia-form-header">
-            <h1>NEW ENERGY INCENTIVE APPLICATION</h1>
+            <h1>Energy Incentive Application</h1>
         </div>
 
-        <form action="{{ url_for('user_submit_eia') }}" method="POST" enctype="multipart/form-data">
+        <form action="" method="POST" id="eia-form" enctype="multipart/form-data">
 
             <div class="eia-form-content">
                 
-                <label for="department" class="form-label">Department :</label>
-                <input type="text" id="department" name="department" required>
-
-                <label for="project_title" class="form-label">Project Title :</label>
-                <input type="text" id="project_title" name="project_title" required>
-
-                <label for="project_type" class="form-label">Project Type :</label>
-                <input type="text" id="project_type" name="project_type" required>
+                <label for="department" class="form-label">Submitting Department:</label>
+                <input type="text" id="department" name="department" placeholder="e.g., Facilities Management" required>
                 
-                <label for="sponsor" class="form-label">Application Sponsor :</label>
+                <label for="project_type" class="form-label">Project Type (Category):</label>
+                <input type="text" id="project_type" name="project_type" placeholder="e.g., LED Lighting Upgrade" required>
+                
+                <label for="building" class="form-label">Building Name/ID:</label>
+                <input type="text" id="building" name="building" placeholder="e.g., Bilger Hall, IT Center" required>
+                
+                <label for="sponsor" class="form-label">Application Sponsor:</label>
                 <select id="sponsor" name="sponsor">
-                    <option value="Contractor">Contractor (Default)</option>
-                    <option value="Unit Sponsor">Unit Sponsor</option>
-                    <option value="Energy Office">Energy Office</option>
+                    <option value="1">Contractor (Default)</option>
+                    <option value="2">Unit Sponsor</option>
+                    <option value="3">Energy Office</option>
                 </select>
 
-                <label for="documents" class="form-label">Upload Supporting Documents :</label>
-                <div class="upload-row">
-                    <input type="file" id="documents" name="documents" style="width: auto;">
-                    <button type="button" class="action-button" style="background-color: #555; color: #fff;">Choose file</button>
-                    <button type="button" class="action-button" style="background-color: #555; color: #fff;">Upload</button>
-                </div>
-
-                <label for="description" class="description-label">Project Description :</label>
-                <textarea id="description" name="description" rows="10" required></textarea>
+                <label for="description" class="description-label">Project Description:</label>
+                <textarea id="description" name="description" rows="5" placeholder="Provide a brief, detailed description of the energy project and scope."></textarea>
 
                 <div class="form-actions">
-                    <button type="submit" class="action-button submit-btn">Submit Application</button>
-                    <button type="button" class="action-button draft-btn">Save Draft</button>
+                    <button type="button" class="action-button draft-btn" onclick="submitForm('{{ url_for('user_save_draft') }}')">Save Draft</button>
+                    
+                    <button type="button" class="action-button submit-btn" onclick="submitForm('{{ url_for('user_submit_eia') }}')">Submit Application</button>
                 </div>
 
             </div>
 
         </form>
     </div>
+    
+    <script>
+        // Flash message display logic (optional, add if using Flask messages)
+        const messages = document.querySelector('.flashes');
+        if (messages) {
+            setTimeout(() => {
+                messages.style.display = 'none';
+            }, 5000); // Hide after 5 seconds
+        }
+        
+        function submitForm(actionUrl) {
+            // Get the form element
+            const form = document.getElementById('eia-form');
+            
+            // Set the form's action to the correct URL (submit or save draft)
+            form.action = actionUrl;
+            
+            // Submit the form
+            form.submit();
+        }
+    </script>
     
 </body>
 </html>

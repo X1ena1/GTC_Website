@@ -39,6 +39,50 @@ def get_db_connection():
         print(f"Error connecting to MySQL: {err}")
         return None
 
+# --- ADMIN PASSWORD SETTER ROUTE (NON-SECURE PLAINTEXT) ---
+@app.route('/admin/set-password', methods=['POST'])
+def admin_set_password():
+    """
+    ⚠️ NON-SECURE: Saves the plaintext password directly into the DEPARTMENT_USERS.Password_ID column.
+    This route assumes an admin form posts to it with 'department_id' and 'new_password'.
+    """
+    if 'contractor_logged_in' not in session:
+        flash('Authorization required to set passwords.', 'warning')
+        return redirect(url_for('contractor_login'))
+        
+    dept_id = request.form.get('department_id')
+    new_password_plaintext = request.form.get('new_password')
+
+    if not dept_id or not new_password_plaintext:
+        flash('Missing Department ID or new password.', 'danger')
+        return redirect(url_for('contractor_dashboard'))
+
+    conn = get_db_connection()
+    if conn is None:
+        flash('Database connection error.', 'error')
+        return redirect(url_for('contractor_dashboard'))
+        
+    cursor = conn.cursor()
+    
+    try:
+        # ⚠️ WARNING: Saving plaintext password directly!
+        update_query = "UPDATE DEPARTMENT_USERS SET Password_ID = %s WHERE Department_ID = %s"
+        cursor.execute(update_query, (new_password_plaintext, dept_id))
+        conn.commit()
+        
+        flash(f"Password successfully set (plaintext) for Department ID {dept_id}.", 'success')
+        
+    except mysql.connector.Error as e:
+        flash(f'Database error setting password: {e}', 'danger')
+        conn.rollback()
+        
+    finally:
+        cursor.close()
+        if conn and conn.is_connected():
+            conn.close()
+            
+    return redirect(url_for('contractor_dashboard'))
+
 # ==============================================================================
 # 🔐 AUTHENTICATION & LOGIN ROUTES
 # ==============================================================================
@@ -59,12 +103,12 @@ def contractor_login():
     """Renders the contractor login page template."""
     return render_template('contractor_login.html')
 
-# --- CONTRACTOR LOGIN SUBMIT (PLAINTEXT BYPASS) ---
+# --- CONTRACTOR LOGIN SUBMIT (PLAINTEXT COMPARISON) ---
 @app.route('/login-submit', methods=['POST'])
 def login_submit():
     """
-    Handles authentication using a TEMPORARY, NON-SECURE plaintext password check.
-    (This uses '==' instead of check_password_hash).
+    ⚠️ NON-SECURE: Handles contractor authentication by comparing the plaintext password
+    against the value stored in the REVIEWER.Password_ID column.
     """
     
     email = request.form.get('username')
@@ -78,8 +122,8 @@ def login_submit():
     user = None
     try:
         cursor = conn.cursor(dictionary=True)
-        # Assumes your reviewer table is named 'REVIEWER'
-        query = "SELECT Employee_ID, Employee_Name, Password_Hash FROM REVIEWER WHERE Email = %s"
+        # 🚨 FIX: Changed Password_Hash to Password_ID to match your database change.
+        query = "SELECT Employee_ID, Employee_Name, Password_ID FROM REVIEWER WHERE Email = %s"
         cursor.execute(query, (email,))
         user = cursor.fetchone()
         cursor.close()
@@ -93,12 +137,13 @@ def login_submit():
             conn.close()
 
     if user:
-        # ⚠️ NON-SECURE BYPASS: Checking plaintext against database value
-        if user['Password_Hash'] == password_attempt:
+        # ⚠️ NON-SECURE CHECK: Plaintext comparison against database value
+        if user['Password_ID'] == password_attempt: # <--- NOTE: Uses Password_ID here too
             # --- SUCCESSFUL LOGIN ---
             session['contractor_logged_in'] = True
             session['employee_id'] = user['Employee_ID']
             session['username'] = user['Employee_Name']
+            flash(f"Welcome back, {user['Employee_Name']}.", 'success')
             return redirect(url_for('contractor_dashboard'))
         else:
             # Password mismatch
@@ -109,24 +154,6 @@ def login_submit():
         flash('Invalid username or password.', 'error')
         return redirect(url_for('contractor_login'))
 
-# --- TEMPORARY HASH GENERATOR (DELETE ME AFTER SETUP) ---
-@app.route('/temp-hash-generator')
-def temp_hash_generator():
-    """
-    Generates and displays a hash for a demo password. 
-    THE LOGIN PASSWORD IS: password123
-    """
-    test_password = 'password123' 
-    hashed_password = generate_password_hash(test_password)
-    
-    # This output goes to your terminal
-    print("\n--- COPY THIS REAL HASH STRING ---")
-    print(f"PASSWORD: {test_password}")
-    print(f"HASH:     {hashed_password}")
-    print("----------------------------------\n")
-    
-    return jsonify({"message": "Hash generated. Check your console/terminal and copy the string."})
-
 # --- USER LOGIN & SUBMIT (DEMO) ---
 @app.route('/user-login', methods=['GET'])
 def user_login():
@@ -135,11 +162,57 @@ def user_login():
 
 @app.route('/user-login-submit', methods=['POST'])
 def user_login_submit():
-    """Handles standard user login submission, bypassing authentication for the demo."""
-    username = request.form.get('username')
-    session['user_logged_in'] = True
-    session['user_username'] = username if username else 'Demo User'
-    return redirect(url_for('user_dashboard'))
+    """
+    ⚠️ NON-SECURE: Handles user (department) authentication by comparing the plaintext password
+    against the value stored in the Department_Users.Password_ID column.
+    """
+    login_id = request.form.get('username') # User inputs Department_ID here
+    password_attempt = request.form.get('password')
+    
+    try:
+        dept_id = int(login_id)
+    except (ValueError, TypeError):
+        flash('Invalid login ID format. Please use your Department ID.', 'danger')
+        return redirect(url_for('user_login'))
+
+    conn = get_db_connection()
+    if conn is None:
+        flash('Could not connect to the database. Try again later.', 'error')
+        return redirect(url_for('user_login'))
+
+    user = None
+    try:
+        cursor = conn.cursor(dictionary=True)
+        # Query the DEPARTMENT_USERS table using Department_ID
+        query = "SELECT Department_ID, Department_Name, Password_ID FROM APPLICANT WHERE Department_ID = %s"        
+        cursor.execute(query, (dept_id,))
+        user = cursor.fetchone()
+        cursor.close()
+        
+    except mysql.connector.Error as err:
+        print(f"Database query error during user login: {err}")
+        flash('A database error occurred during login.', 'error')
+        return redirect(url_for('user_login'))
+    finally:
+        if conn and conn.is_connected():
+            conn.close()
+
+    if user:
+        # ⚠️ NON-SECURE CHECK: Plaintext comparison
+        # NOTE: We assume the user table is named DEPARTMENT_USERS
+        if user['Password_ID'] == password_attempt: 
+            # --- SUCCESSFUL LOGIN ---
+            session['user_logged_in'] = True
+            session['user_id'] = user['Department_ID'] # Store ID for later lookup
+            session['user_username'] = user['Department_Name']
+            flash(f"Welcome, {user['Department_Name']}.", 'success')
+            return redirect(url_for('user_dashboard'))
+        else:
+            flash('Invalid login ID or password.', 'danger')
+            return redirect(url_for('user_login'))
+    else:
+        flash('Invalid login ID or password.', 'danger')
+        return redirect(url_for('user_login'))
 
 # ==============================================================================
 # 🏠 DASHBOARD & CORE VIEW ROUTES
@@ -227,7 +300,15 @@ def user_dashboard():
         return redirect(url_for('user_login'))
 
     username = session.get('user_username', 'Demo User') 
+    # Use the numeric ID for database lookup, which is stored in 'user_id'
+    department_id = session.get('user_id') 
+
     user_applications = []
+    
+    # Check if we have the Department_ID before proceeding
+    if department_id is None:
+         flash("Error: User ID not found in session.", 'error')
+         return render_template('user_dashboard.html', username=username, applications=user_applications)
     
     conn = get_db_connection()
     if conn is None:
@@ -236,6 +317,7 @@ def user_dashboard():
     try:
         cursor = conn.cursor(dictionary=True)
         
+        # NOTE: Status filtering is omitted because we want ALL records for this user (Draft, Pending, Approved, etc.)
         query = """
         SELECT SOP_Number, Category, Status, Building, Submission_Date, Office_Notes
         FROM REBATE
@@ -243,7 +325,8 @@ def user_dashboard():
         ORDER BY Submission_Date DESC
         LIMIT 10;
         """
-        cursor.execute(query, (username,)) 
+        # --- FIX 1: Pass the numeric 'department_id' instead of the string 'username' ---
+        cursor.execute(query, (department_id,)) 
         user_applications = cursor.fetchall()
         cursor.close()
         
@@ -257,6 +340,56 @@ def user_dashboard():
     return render_template('user_dashboard.html', 
                            username=username, 
                            applications=user_applications)
+
+# --- DELETE DRAFT APPLICATION ---
+@app.route('/delete-draft/<int:sop_number>')
+def delete_draft(sop_number):
+    """
+    Handles the deletion of a draft application (REBATE record) 
+    using the SOP_Number. Only allows deletion if Status is 'Draft'.
+    """
+    if 'user_logged_in' not in session:
+        return redirect(url_for('user_login'))
+    
+    # Get the user ID to ensure the user can only delete their own drafts
+    department_id = session.get('user_id')
+    
+    conn = get_db_connection()
+    if conn is None:
+        flash("Database connection error. Could not delete draft.", 'error')
+        return redirect(url_for('user_dashboard'))
+
+    try:
+        cursor = conn.cursor()
+        
+        # --- CRITICAL: Delete Query ---
+        # Ensures that only records with the 'Draft' status AND the correct Department_ID are deleted.
+        sql = """
+        DELETE FROM REBATE
+        WHERE SOP_Number = %s AND Status = 'Draft' AND Department_ID = %s
+        """
+        cursor.execute(sql, (sop_number, department_id))
+        conn.commit()
+        
+        # Check if any rows were actually deleted
+        if cursor.rowcount == 1:
+            flash(f"Draft application {sop_number} has been deleted.", 'success')
+        else:
+            # This handles attempts to delete a submitted or approved application, or another user's draft.
+            flash(f"Could not delete draft {sop_number}. It may no longer be a draft or belongs to another user.", 'warning')
+            
+        cursor.close()
+
+    except mysql.connector.Error as err:
+        print(f"Database deletion error: {err}")
+        conn.rollback()
+        flash("An error occurred during deletion.", 'error')
+        
+    finally:
+        if conn and conn.is_connected():
+            conn.close()
+
+    return redirect(url_for('user_dashboard'))
 
 # --- VIEW ALL APPLICATIONS ---
 @app.route('/view-all-applications')
@@ -405,51 +538,123 @@ def submit_eia():
 # --- USER EIA FORM SUBMISSION (POST) ---
 @app.route('/user-submit-eia', methods=['POST'])
 def user_submit_eia():
-    """Handles the submission of the New EIA Application form data from a standard user."""
+    """
+    Handles the submission of the New EIA Application form data from a standard user, 
+    inserting the record into the REBATE table for contractor review.
+    """
     if 'user_logged_in' not in session:
         return redirect(url_for('user_login'))
     
     conn = get_db_connection()
     if conn is None:
-        return "Database connection error. Application not saved.", 500
+        flash("Database connection error. Application not saved.", 'error')
+        return redirect(url_for('user_dashboard'))
 
     try:
         cursor = conn.cursor()
         
-        department = request.form.get('department')
-        project_title = request.form.get('project_title')
-        project_type = request.form.get('project_type')
-        sponsor = request.form.get('sponsor')
-        description = request.form.get('description')
-        uploaded_file_path = "N/A"
+        # --- 1. GATHER FORM DATA ---
+        department_name = request.form.get('department')
+        category = request.form.get('project_type') # Map to REBATE.Category
+        building = request.form.get('building')      # Assuming you added a building field to the user form
+        sponsor_id = request.form.get('sponsor')    # Map to REBATE.Sponsor_ID
         
-        # NOTE: File Upload logic omitted here for brevity
+        # Retrieve the user's Department_ID from the session
+        department_id = session.get('user_id') 
         
+        # NOTE: File Upload and Description/Title logic omitted here for database matching
+        
+        # --- 2. INSERT INTO REBATE TABLE ---
         sql = """
-        INSERT INTO APPLICANT
-        (department, project_title, project_type, application_sponsor, project_description, supporting_documents_path, status, submitted_by)
-        VALUES (%s, %s, %s, %s, %s, %s, 'Pending', %s)
+        INSERT INTO REBATE
+        (Category, Status, Building, Submission_Date, Department_ID, Sponsor_ID, Office_Notes)
+        VALUES (%s, %s, %s, NOW(), %s, %s, %s) 
         """
         data = (
-            department,
-            project_title,
-            project_type,
-            sponsor,
-            description,
-            uploaded_file_path,
-            session.get('user_username', 'Unknown User')
+            category,
+            'Pending',
+            building,
+            department_id,
+            sponsor_id,
+            f"Submitted by {department_name}." # Initial note
         )
         
         cursor.execute(sql, data)
         conn.commit()
         cursor.close()
         
+        flash("Your application has been submitted and is pending review.", 'success')
         return redirect(url_for('user_dashboard'))
 
     except mysql.connector.Error as err:
-        print(f"Database insertion error into APPLICANT: {err}")
+        print(f"Database insertion error into REBATE: {err}")
         conn.rollback()
-        return "Error submitting application to database.", 500
+        flash("Error submitting application to database.", 'error')
+        return redirect(url_for('user_dashboard'))
+        
+    finally:
+        if conn and conn.is_connected():
+            conn.close()
+
+# --- USER EIA FORM SAVE DRAFT (POST) ---
+@app.route('/user-save-draft', methods=['POST'])
+def user_save_draft():
+    """
+    Handles saving the EIA Application form data as a 'Draft' record.
+    If the record already exists (e.g., has an SOP_Number), it should update it.
+    For simplicity, we'll implement initial creation only for now.
+    """
+    if 'user_logged_in' not in session:
+        return redirect(url_for('user_login'))
+    
+    conn = get_db_connection()
+    if conn is None:
+        flash("Database connection error. Draft not saved.", 'error')
+        return redirect(url_for('user_dashboard'))
+
+    try:
+        cursor = conn.cursor()
+        
+        # --- GATHER FORM DATA ---
+        department_name = request.form.get('department')
+        category = request.form.get('project_type') # Maps to REBATE.Category
+        building = request.form.get('building')
+        sponsor_id = request.form.get('sponsor')
+        description = request.form.get('description') # Capturing the description now
+        
+        department_id = session.get('user_id') 
+        
+        # --- INSERT INTO REBATE TABLE WITH 'Draft' STATUS ---
+        # Note: We are using NOW() for Submission_Date, but for a draft, you might
+        # prefer to use a NULLable column for Draft_Save_Date instead.
+        sql = """
+        INSERT INTO REBATE
+        (Category, Status, Building, Submission_Date, Department_ID, Sponsor_ID, Office_Notes)
+        VALUES (%s, %s, %s, NOW(), %s, %s, %s) 
+        """
+        data = (
+            category,
+            'Draft', # Key difference: Setting status to 'Draft'
+            building,
+            department_id,
+            sponsor_id,
+            f"Draft saved by {department_name}: {description[:200]}..." # Use part of description
+        )
+        
+        cursor.execute(sql, data)
+        conn.commit()
+        cursor.close()
+        
+        # NOTE: A critical next step would be to get the new SOP_Number and redirect 
+        # the user back to the edit page for that specific draft, but for now:
+        flash("Your application draft has been saved. You can continue editing later.", 'success')
+        return redirect(url_for('user_dashboard'))
+
+    except mysql.connector.Error as err:
+        print(f"Database insertion error saving draft: {err}")
+        conn.rollback()
+        flash("Error saving draft to database.", 'error')
+        return redirect(url_for('user_dashboard'))
         
     finally:
         if conn and conn.is_connected():
@@ -631,7 +836,7 @@ def user_signup():
 # --- ENERGY REPORT VIEW ---
 @app.route('/energy-report')
 def energy_report():
-    """Fetches key aggregate metrics for each campaign."""
+    """Fetches key aggregate metrics for each campaign by joining Campaign, Rebate, and Approvals."""
     if 'contractor_logged_in' not in session:
         return redirect(url_for('contractor_login'))
     
@@ -645,19 +850,19 @@ def energy_report():
     try:
         cursor = conn.cursor(dictionary=True)
         
-        # SQL Query to join Campaign, Rebate, and Rebate_Approvals to calculate metrics
+# SQL Query: Starts with CAMPAIGN and LEFT JOINs to REBATE and REBATE_APPROVALS
         query = """
         SELECT 
             C.Campaign_Name,
-            C.Campaign_Type,
+            C.Category, -- Use the new, renamed column
             COUNT(R.SOP_Number) AS Total_Applications,
             SUM(CASE WHEN R.Status = 'Approved' THEN 1 ELSE 0 END) AS Approved_Applications,
-            COALESCE(SUM(RA.Approved_Amount), 0) AS Total_Approved_Rebates,
-            COALESCE(SUM(RA.Energy_Savings_KWh), 0) AS Total_KWh_Savings
+            COALESCE(SUM(RA.Approved_Amount), 0) AS Total_Approved_Rebates
         FROM CAMPAIGN C
-        LEFT JOIN REBATE R ON C.Campaign_ID = R.Campaign_ID
+        -- ✅ FINAL FIXED JOIN: Joining Category to Category
+        LEFT JOIN REBATE R ON C.Category = R.Category
         LEFT JOIN REBATE_APPROVALS RA ON R.SOP_Number = RA.SOP_Number
-        GROUP BY C.Campaign_ID, C.Campaign_Name, C.Campaign_Type
+        GROUP BY C.Campaign_ID, C.Campaign_Name, C.Category
         ORDER BY C.Campaign_Date DESC;
         """
         cursor.execute(query)
@@ -723,12 +928,55 @@ def payment_report():
     # Pass the data to the new template using the variable 'payments'
     return render_template('payment_report.html', payments=payments)
 
+# --- PROJECT REPORT VIEW ---
 @app.route('/project-report')
 def project_report():
+    """Fetches a detailed list of all projects, joining application and financial data."""
     if 'contractor_logged_in' not in session:
         return redirect(url_for('contractor_login'))
-    return render_template('report_placeholder.html', report_name='Project Report')
+    
+    conn = get_db_connection()
+    projects = []
+    
+    if conn is None:
+        flash('Could not connect to the database.', 'error')
+        return render_template('project_report.html', projects=projects)
 
+    try:
+        cursor = conn.cursor(dictionary=True)
+        
+        # SQL Query to join REBATE (R), APPLICANT (D), and REBATE_APPROVALS (RA)
+        query = """
+        SELECT 
+            R.SOP_Number,
+            D.Department_Name AS Department,
+            R.Category,
+            R.Building,
+            R.Submission_Date,
+            R.Status,
+            COALESCE(RA.Approved_Amount, 0.00) AS Approved_Amount,
+            RA.Disbursed_Date
+        FROM REBATE R
+        -- Using APPLICANT table name based on your successful troubleshooting:
+        LEFT JOIN APPLICANT D ON R.Department_ID = D.Department_ID
+        LEFT JOIN REBATE_APPROVALS RA ON R.SOP_Number = RA.SOP_Number
+        ORDER BY R.Submission_Date DESC;
+        """
+        
+        cursor.execute(query)
+        projects = cursor.fetchall()
+        cursor.close()
+        
+    except mysql.connector.Error as err:
+        print(f"Database query error fetching project report data: {err}")
+        flash('Error fetching project report data.', 'error')
+        
+    finally:
+        if conn and conn.is_connected():
+            conn.close()
+
+    # NOTE: The template name is now 'project_report.html'
+    return render_template('project_report.html', projects=projects)
 
 # ==============================================================================
 #  RUN APPLICATION
