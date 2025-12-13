@@ -184,14 +184,35 @@ a {
 .steps-container {
     display: flex;
     justify-content: center;
-    gap: 80px; /* Space between the steps */
+    /* Reduced gap slightly to fit the expanded content better */
+    gap: 40px; 
 }
 
 .step-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 200px;
+    width: 250px; /* Increased width to better hold the detail text */
+    /* *** START NEW INTERACTIVE STYLES *** */
+    padding: 10px; /* Added initial padding */
+    margin: -10px; /* Adjusted margin to prevent layout shift */
+    transition: all 0.3s ease-in-out; /* Enable smooth transitions */
+}
+
+/* Style the hover state for the whole step item */
+.step-item:hover {
+    cursor: pointer;
+    background-color: var(--background-gray); /* Light highlight on hover */
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Style the main title text for clarity */
+.step-item p:first-of-type {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: var(--text-dark); /* Keep the original text color */
+    margin-bottom: 5px;
 }
 
 /* --- How It Works Section: Icon Styles Update --- */
@@ -210,7 +231,7 @@ a {
     position: relative;
     
     /* New/Updated Styles for background image */
-    background-size: 70%;       /* Adjust size to fit the JPG icon well within the circle */
+    background-size: 70%;       
     background-repeat: no-repeat;
     background-position: center;
 }
@@ -222,20 +243,98 @@ a {
 
 /* --- STEP 1: Find your rebate (Magnifying Glass) --- */
 .step-item:nth-child(1) .icon-circle {
-    /* **CHANGED TO .jpg** and the path (../img/) must be correct */
     background-image: url('../img/icon-find.jpg'); 
 }
 
 /* --- STEP 2: Submit application (Document/Arrow) --- */
 .step-item:nth-child(2) .icon-circle {
-    /* **CHANGED TO .jpg** */
     background-image: url('../img/icon-submit.jpg');
 }
 
 /* --- STEP 3: Receive your rebate (Hand with Money) --- */
 .step-item:nth-child(3) .icon-circle {
-    /* **CHANGED TO .jpg** */
     background-image: url('../img/icon-receive.jpg');
+}
+
+/* *** END EXISTING STYLES *** */
+
+/* * === START NEW INTERACTIVE DETAIL STYLES === 
+ * Requires adding a <p class="step-detail">...</p> element to your HTML for each step.
+ */
+
+.step-detail {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 10px;
+    padding: 0 10px;
+    /* CRITICAL: Hide the element until hover */
+    max-height: 0; 
+    opacity: 0; 
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out; 
+}
+
+/* SHOW the detail text when the parent item is hovered */
+.step-item:hover .step-detail {
+    max-height: 100px; /* Sufficient height to show content */
+    opacity: 1; 
+}
+
+/* --- Footer Styles --- */
+.main-footer {
+    background-color: var(--primary-green);
+    color: var(--text-light);
+    padding: 40px 0 0 0; /* Padding at the top */
+    margin-top: 50px;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-col {
+    flex: 1;
+    min-width: 250px;
+}
+
+.footer-col h3 {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.footer-col p, .footer-col li {
+    font-size: 0.9em;
+    margin-bottom: 8px;
+    color: #e0e0e0;
+}
+
+.footer-col a {
+    color: var(--secondary-green);
+    text-decoration: none;
+}
+
+.footer-col a:hover {
+    text-decoration: underline;
+}
+
+.footer-col ul {
+    list-style: none;
+    padding: 0;
+}
+
+.copyright-bar {
+    text-align: center;
+    padding: 15px 0;
+    font-size: 0.8em;
+    background-color: #27563d; /* Slightly darker green */
 }
 
 /* --- Media Query for Responsiveness --- */

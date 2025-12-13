@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Report</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" type="text/css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/report_styles.css') }}" type="text/css">
+</head>
+<body>
+    
+    <header class="main-header">
+        <div class="top-bar">
+            <div class="logo-area">
+                <img src="{{ url_for('static', filename='img/uh-logo.png') }}" alt="University of Hawai'i Manoa Logo">
+                <div class="utility-icons">
+                    <span class="icon-bell"></span> 
+                    <span class="icon-gear"></span> 
+                </div>
+            </div>
+            
+            <h2 class="welcome-title">Welcome {{ session.get('username', 'Office of Sustainability') }}</h2>
+            
+            <div class="header-nav-container">
+                <div class="nav-links-right">
+                    <a href="{{ url_for('index') }}">Home</a>
+                    
+                    <div class="dropdown">
+                        <button class="dropbtn">Admin & Reports</button>
+                        <div class="dropdown-content">
+                            <a href="{{ url_for('energy_report') }}">Energy Report</a>
+                            <a href="{{ url_for('payment_report') }}">Payment Report</a>
+                            <a href="{{ url_for('sponsor_approvals') }}">Sponsor Approvals</a>
+                            <a href="{{ url_for('project_report') }}">Project Report</a>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="dark-report-page">
+        <div class="report-container">
+            <div class="report-header">
+                <h2>Payment Report</h2>
+            </div>
+
+            <table class="reports-table">
+                <thead>
+                    <tr>
+                        <th>App ID</th>
+                        <th>Department</th>
+                        <th>Project Title</th>
+                        <th>Last Updated</th>
+                        <th>Rebate Paid</th>
+                    </tr>
+                </thead>
+                
+                <tbody>
+                    {% if payments %}
+                        {% for payment in payments %}
+                        <tr>
+                            <td>{{ payment.App_ID }}</td>
+                            <td>{{ payment.Department }}</td>
+                            <td>{{ payment.Project_Title }}</td>
+                            <td>{{ payment.Last_Updated }}</td>
+                            <td>${{ payment.Rebate_Paid | round(2) }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="no-data">No disbursed payments found.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+            
+        </div>
+    </main>
+</body>
+</html>

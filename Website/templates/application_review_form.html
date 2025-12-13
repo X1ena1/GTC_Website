@@ -29,6 +29,20 @@
 
         <form method="POST" action="{{ url_for('process_decision', application_id=details.SOP_Number) }}">
             
+            <div class="form-group approved-amount-input">
+                <h3>Approved Rebate Amount:</h3>
+                <input 
+                    type="number" 
+                    step="0.01" 
+                    min="0" 
+                    id="approved_amount" 
+                    name="approved_amount" 
+                    placeholder="Enter final amount (e.g., 15000.00)" 
+                    class="form-control" 
+                    required>
+                <small class="form-text text-muted">This amount will be recorded in the financial approvals table.</small>
+            </div>
+            
             <h3>Notes to Applicant :</h3>
             <textarea name="notes_to_applicant" rows="5" placeholder="Enter comments, revisions required, or reasons for rejection..."></textarea>
             

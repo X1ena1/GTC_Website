@@ -1,0 +1,158 @@
+/* static/css/report_styles.css - ENHANCED LIGHT GREEN THEME */
+
+/* --- 1. CORE LAYOUT --- */
+
+/* Wrapper for the report area */
+.dark-report-page {
+    background-color: #f7f7f7; /* Very light gray background for contrast */
+    color: #333333; 
+    padding: 50px 0; /* Increased top/bottom padding */
+    font-family: Arial, sans-serif; /* Specified font stack */
+}
+
+/* Report content container */
+.report-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.report-header h2 {
+    color: #004d40; /* Dark green text for titles */
+    font-size: 2.2em;
+    font-weight: 700; /* Bolder title */
+    margin-bottom: 30px; /* More separation */
+    border-left: 5px solid #4CAF50; /* Green accent line */
+    padding-left: 15px;
+}
+
+
+/* --- 2. TABLE STYLES --- */
+
+.reports-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white; 
+    border-radius: 10px; /* Slightly rounder corners */
+    overflow: hidden;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08); /* Stronger, softer shadow */
+    font-size: 0.95em; /* Slightly smaller for dense data */
+}
+
+.reports-table th, .reports-table td {
+    padding: 15px 20px; /* Increased internal padding */
+    text-align: left;
+    border-bottom: 1px solid #eeeeee; /* Very light gray border */
+}
+
+/* Table Header */
+.reports-table th {
+    background-color: #e8f5e9; /* Light green header row */
+    color: #388e3c; /* Green text for headers */
+    font-weight: 600; 
+    text-transform: uppercase;
+    font-size: 0.9em;
+    letter-spacing: 0.5px; /* Added letter spacing */
+}
+
+/* Row Striping and Hover */
+.reports-table tbody tr:nth-child(even) {
+    background-color: #f9fdf9; /* Subtle striping for even rows */
+}
+
+.reports-table tr:hover {
+    background-color: #f1f8e9; /* Light green on hover */
+    cursor: default;
+}
+
+/* --- 3. STATUS & DATA CLARITY --- */
+
+/* Style for the "Pending Approval" status text */
+.reports-table td:has(.status-pending) {
+    font-weight: 600;
+    color: #ff9800; /* Orange color for pending */
+}
+
+/* Style for the "Pending" status in the Payment Date column */
+.reports-table .status-pending {
+    color: #ff9800;
+    font-weight: 600;
+}
+
+/* Style for no data message */
+.reports-table .no-data {
+    text-align: center;
+    font-style: italic;
+    color: #777;
+    padding: 30px;
+}
+
+
+/* --- 4. FOOTER BUTTONS (If Re-added) --- */
+
+.footer-buttons {
+    margin-top: 50px;
+    display: flex;
+    justify-content: center; /* Center the buttons */
+    gap: 20px; /* Space between buttons */
+}
+
+.footer-buttons a button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 12px 25px; /* Slightly larger buttons */
+    font-size: 1em;
+    cursor: pointer;
+    border-radius: 30px; /* Pill-shaped buttons */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.footer-buttons a button:hover {
+    background-color: #388e3c; 
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Add this block to your existing report_styles.css file */
+
+/* --- STATUS BADGES for View All Applications & Reports --- */
+.status-pending {
+    color: #ff9800; /* Orange for pending items */
+    font-weight: 600;
+}
+.status-approved {
+    color: #28a745; /* Success Green for approved items */
+    font-weight: 600;
+}
+.status-rejected {
+    color: #dc3545; /* Danger Red for rejected items */
+    font-weight: 600;
+}
+.status-revision-requested {
+    color: #007bff; /* Blue for items needing revision */
+    font-weight: 600;
+}
+
+/* Also ensure your action button styles are here: */
+.action-small-btn {
+    padding: 6px 12px;
+    font-size: 0.9em;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #4caf50; /* Primary Green */
+    color: white;
+    transition: background-color 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-small-btn:hover {
+    background-color: #388e3c; /* Darker green on hover */
+}
+
+/* Styling for high-value metrics on the Energy Report */
+.reports-table .status-approved-count {
+    font-weight: 700;
+    color: #008000; /* Darker success green */
+}

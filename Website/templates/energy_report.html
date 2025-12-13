@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View All Rebate Applications</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}"> 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/report_styles.css') }}"> 
+    <title>Energy Report</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" type="text/css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/report_styles.css') }}" type="text/css">
 </head>
 <body>
     
@@ -39,62 +39,63 @@
             </div>
         </div>
     </header>
-    <main class="dark-report-page"> 
-        <section class="report-container">
-            
+    <main class="dark-report-page">
+        <div class="report-container">
             <div class="report-header">
-                <h2>All Submitted Rebate Applications</h2>
+                <h2>Energy Campaign Performance Report</h2>
             </div>
             
-            <p class="section-description">A comprehensive list of all submitted energy incentive applications (rebates).</p>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flashes">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
 
-            <div class="table-container">
+            {% if metrics %}
                 <table class="reports-table">
                     <thead>
                         <tr>
-                            <th>SOP Number</th>
-                            <th>Category</th>
-                            <th>Status</th>
-                            <th>Building</th>
-                            <th>Submission Date</th>
-                            <th>Department ID</th>
-                            <th>Sponsor ID</th>
-                            <th>Actions</th>
+                            <th>Campaign Name</th>
+                            <th>Type</th>
+                            <th>Total Applications</th>
+                            <th>Approved Projects</th>
+                            <th>Total Approved Rebates</th>
+                            <th>Est. Total kWh Savings</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for app in applications %} 
+                        {% for campaign in metrics %}
                         <tr>
-                            <td>{{ app.SOP_Number }}</td>
-                            <td>{{ app.Category }}</td>
+                            <td>{{ campaign.Campaign_Name }}</td>
+                            <td>{{ campaign.Campaign_Type }}</td>
+                            <td>{{ campaign.Total_Applications }}</td>
+                            
                             <td>
-                                <span class="status-{{ app.Status | lower | replace(' ', '-') }}">
-                                    {{ app.Status }}
+                                <span class="status-approved-count">
+                                    {{ campaign.Approved_Applications }}
                                 </span>
                             </td>
-                            <td>{{ app.Building }}</td>
-                            <td>{{ app.Submission_Date }}</td>
-                            <td>{{ app.Department_ID }}</td>
-                            <td>{{ app.Sponsor_ID }}</td>
+                            
                             <td>
-                                <a href="{{ url_for('review_application', application_id=app.SOP_Number) }}">
-                                    <button class="action-small-btn">
-                                        Review Details
-                                    </button>
-                                </a>
+                                ${{ campaign.Total_Approved_Rebates | round(2) }}
                             </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="8" class="no-data">No rebate application data found in the database.</td>
+                            
+                            <td>
+                                {{ "{:,}".format(campaign.Total_KWh_Savings | int) }} kWh
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-            </div>
-
-        </section>
+            {% else %}
+                <p class="no-data-message">No campaign data or metrics found in the system.</p>
+            {% endif %}
+            
+        </div>
     </main>
-
-    </body>
+</body>
 </html>
