@@ -442,35 +442,39 @@ def sponsor_approvals():
     try:
         cursor = conn.cursor(dictionary=True)
         
-        # CHANGED TO LEFT JOIN to show all sponsored rebates, regardless of approval status
         query = """
         SELECT 
             R.SOP_Number,
             R.Sponsor_ID,
             RA.Approved_Amount,
+            RA.Approved_Amount AS Disbursed_Amount_Display,
             RA.Disbursed_Date,
             RA.Payment_Date,
             RA.Office_Notes
         FROM REBATE R
         LEFT JOIN REBATE_APPROVALS RA ON R.SOP_Number = RA.SOP_Number
-        WHERE R.Sponsor_ID IS NOT NULL
+        WHERE 
+            R.Sponsor_ID IS NOT NULL -- This is the current, less-strict filter
         ORDER BY R.SOP_Number DESC;
         """
+
         cursor.execute(query)
         approvals = cursor.fetchall()
         cursor.close()
         
     except mysql.connector.Error as err:
+        # 🛑 FIX: This block handles the database error
         print(f"Database query error fetching sponsor approvals: {err}")
         flash('Error fetching sponsor approval data.', 'error')
         
     finally:
+        # 🛑 FIX: This block ensures the connection is closed
         if conn and conn.is_connected():
             conn.close()
 
-    # Pass the data to the new template
+    # Pass the data to the new template (This line is now correctly outside the try/except/finally block)
     return render_template('sponsor_approvals.html', approvals=approvals)
-
+    
 # ==============================================================================
 # 📝 APPLICATION SUBMISSION & REVIEW ROUTES
 # ==============================================================================
@@ -698,6 +702,7 @@ def review_application(application_id):
     return render_template('application_review_form.html', details=application_details)
 
 # --- PROCESS REVIEW DECISION (POST) ---
+# --- PROCESS REVIEW DECISION (POST) ---
 @app.route('/process-decision/<string:application_id>', methods=['POST'])
 def process_decision(application_id):
     """
@@ -713,56 +718,42 @@ def process_decision(application_id):
         return redirect(url_for('view_all_applications'))
 
     try:
-        cursor = conn.cursor()
+        # Use a dictionary cursor for reliable data fetching
+        cursor = conn.cursor(dictionary=True)
         
         decision = request.form.get('action')
         notes = request.form.get('notes_to_applicant')
-        
-        # ⚠️ NEW: Capture the Approved Amount from the form
         approved_amount_str = request.form.get('approved_amount')
         
+        # --- 1. Determine Status and Amount ---
         if decision == 'Approve':
             new_status = 'Approved'
-            
-            # Convert amount to float, handle case where field might be empty if form was misclicked
             try:
                 approved_amount = float(approved_amount_str)
             except (ValueError, TypeError):
                 flash("Approval requires a valid Approved Amount.", 'error')
                 return redirect(url_for('review_application', application_id=application_id))
-
         else:
-            # For Reject/Revision, the amount is effectively zero
-            new_status = decision.replace(' ', ' ')  # Replaces 'Request revision' with 'Revision Requested'
-            approved_amount = 0.00
+            new_status = decision.replace(' ', ' ')
+            approved_amount = 0.00 # Set to zero for non-approved actions
 
-
-        # --- 1. Update the REBATE table (Status and Notes) ---
-        sql_update_rebate = """
-        UPDATE REBATE
-        SET Status = %s, 
-            Office_Notes = %s
-        WHERE SOP_Number = %s
-        """
+        # --- 2. Update the REBATE table (Status and Notes) ---
+        sql_update_rebate = "UPDATE REBATE SET Status = %s, Office_Notes = %s WHERE SOP_Number = %s"
         data_update_rebate = (new_status, notes, application_id)
         cursor.execute(sql_update_rebate, data_update_rebate)
 
         
-        # --- 2. If Approved, Create a Record in REBATE_APPROVALS ---
+        # --- 3. If Approved, Create a Record in REBATE_APPROVALS ---
         if decision == 'Approve':
             
-            # Fetch Sponsor_ID and SOP_Number from the REBATE table
-            cursor.execute("SELECT Sponsor_ID, SOP_Number FROM REBATE WHERE SOP_Number = %s", (application_id,))
-            rebate_details = cursor.fetchone() # Fetch the first row as a tuple
-
-            # Assuming the result is a tuple: (Sponsor_ID, SOP_Number)
-            if rebate_details:
-                sponsor_id = rebate_details[0]
-                rebate_sop = rebate_details[1] 
-            else:
-                sponsor_id = None
-                rebate_sop = application_id 
-                
+            # Fetch Sponsor_ID for the approval record
+            cursor.execute("SELECT Sponsor_ID FROM REBATE WHERE SOP_Number = %s", (application_id,))
+            
+            # Since we used dictionary=True, this returns a dictionary or None
+            rebate_details = cursor.fetchone() 
+            
+            sponsor_id = rebate_details.get('Sponsor_ID') if rebate_details else None
+            
             # Insert into the REBATE_APPROVALS table
             sql_insert_approval = """
             INSERT INTO REBATE_APPROVALS
@@ -773,8 +764,8 @@ def process_decision(application_id):
                 approved_amount, 
                 f"Application approved: {notes}", 
                 session.get('employee_id'), 
-                sponsor_id,
-                rebate_sop 
+                sponsor_id, # Safely uses the fetched Sponsor_ID (can be NULL)
+                application_id 
             )
             
             cursor.execute(sql_insert_approval, data_insert_approval)
@@ -794,7 +785,6 @@ def process_decision(application_id):
     finally:
         if conn and conn.is_connected():
             conn.close()
-
 
 # ==============================================================================
 # 📄 PUBLIC & MISC ROUTES

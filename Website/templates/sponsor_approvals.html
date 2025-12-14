@@ -40,63 +40,74 @@
         </div>
     </header>
 
-    <main class="dark-report-page"> <div class="report-container">
+    <main class="dark-report-page"> 
+        <div class="report-container">
             <div class="report-header">
                 <h2>Sponsor Approvals Report</h2>
             </div>
         
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flashes">
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-
-        {% if approvals %}
-            <table class="reports-table"> <thead>
-                    <tr>
-                        <th>SOP Number</th>
-                        <th>Sponsor ID</th>
-                        <th>Approved Amount</th>
-                        <th>Disbursed Date</th>
-                        <th>Payment Date</th>
-                        <th>Office Notes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for approval in approvals %}
-                    <tr>
-                        <td>{{ approval.SOP_Number }}</td>
-                        <td>{{ approval.Sponsor_ID }}</td>
-                        
-                        <td>
-                            {% if approval.Approved_Amount is not none %}
-                                ${{ approval.Approved_Amount | round(2) }}
-                            {% else %}
-                                <span class="status-pending">Pending Approval</span>
-                            {% endif %}
-                        </td>
-                        
-                        <td>{{ approval.Disbursed_Date if approval.Disbursed_Date else 'N/A' }}</td>
-                        <td>
-                            {% if approval.Payment_Date %}
-                                {{ approval.Payment_Date }}
-                            {% else %}
-                                <span class="status-pending">Pending</span>
-                            {% endif %}
-                        </td>
-                        
-                        <td>{{ approval.Office_Notes | default('No notes.', True) | truncate(50, True) }}</td>
-                    </tr>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flashes">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
                     {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p class="no-data-message">No sponsor-related approval records found.</p>
-        {% endif %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% if approvals %}
+                <table class="reports-table"> 
+                    <thead>
+                        <tr>
+                            <th>SOP Number</th>
+                            <th>Sponsor ID</th>
+                            <th>Approved Amount</th>
+                            <th>Disbursed Amount</th>
+                            <th>Disbursed Date</th>
+                            <th>Payment Date</th>
+                            <th>Office Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for approval in approvals %}
+                        <tr>
+                            <td>{{ approval.SOP_Number }}</td>
+                            <td>{{ approval.Sponsor_ID }}</td>
+                            
+                            <td>
+                                {% if approval.Approved_Amount is not none %}
+                                    ${{ approval.Approved_Amount | default(0) | round(2) }}
+                                {% else %}
+                                    <span class="status-pending">N/A</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td>
+                                {% if approval.Disbursed_Amount_Display is not none %}
+                                    ${{ approval.Disbursed_Amount_Display | default(0) | round(2) }} 
+                                {% else %}
+                                    <span class="status-pending">Pending Payment</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td>{{ approval.Disbursed_Date if approval.Disbursed_Date else 'N/A' }}</td>
+                            <td>
+                                {% if approval.Payment_Date %}
+                                    {{ approval.Payment_Date }}
+                                {% else %}
+                                    <span class="status-pending">Pending</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td>{{ approval.Office_Notes | default('No notes.', True) | truncate(50, True) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="no-data-message">No sponsor-related approval records found.</p>
+            {% endif %}
         </div>
     </main>
 </body>

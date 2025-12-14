@@ -76,14 +76,21 @@
                             <td>{{ app.Submission_Date }}</td>
                             <td>{{ app.Department_ID }}</td>
                             <td>{{ app.Sponsor_ID }}</td>
+                            
                             <td>
-                                <a href="{{ url_for('review_application', application_id=app.SOP_Number) }}">
-                                    <button class="action-small-btn">
-                                        Review Details
-                                    </button>
-                                </a>
+                                {% if app.Status == 'Pending' or app.Status == 'Revision Requested' %}
+                                    <a href="{{ url_for('review_application', application_id=app.SOP_Number) }}">
+                                        <button class="action-small-btn status-pending">
+                                            Review/Approve
+                                        </button>
+                                    </a>
+                                {% else %}
+                                    <a href="{{ url_for('review_application', application_id=app.SOP_Number) }}">
+                                        View Details
+                                    </a>
+                                {% endif %}
                             </td>
-                        </tr>
+                            </tr>
                         {% else %}
                         <tr>
                             <td colspan="8" class="no-data">No rebate application data found in the database.</td>
