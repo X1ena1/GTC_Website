@@ -680,7 +680,7 @@ def review_application(application_id):
         cursor = conn.cursor(dictionary=True)
         
         query = """
-        SELECT SOP_Number, Category, Building, Department_ID, Status
+        SELECT SOP_Number, Category, Building, Department_ID, Status, Office_Notes
         FROM REBATE
         WHERE SOP_Number = %s;
         """
@@ -701,7 +701,6 @@ def review_application(application_id):
 
     return render_template('application_review_form.html', details=application_details)
 
-# --- PROCESS REVIEW DECISION (POST) ---
 # --- PROCESS REVIEW DECISION (POST) ---
 @app.route('/process-decision/<string:application_id>', methods=['POST'])
 def process_decision(application_id):

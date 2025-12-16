@@ -20,6 +20,13 @@
             <p><strong>EIA ID :</strong> {{ details.SOP_Number }}</p>
             <p><strong>Department :</strong> {{ details.Department_ID }}</p>
             <p><strong>Status :</strong> {{ details.Status }}</p>
+            
+            <hr>
+
+            <div class="office-notes-display">
+                <p><strong>Internal Review Notes:</strong></p>
+                <p class="notes-content">{{ details.Office_Notes | default("No previous notes recorded.", true) }}</p>
+            </div>
             <hr>
             <p><strong>Project type :</strong> {{ details.Category }} (Building: {{ details.Building }})</p>
             
