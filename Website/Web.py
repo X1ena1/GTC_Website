@@ -3,6 +3,7 @@
 # ==============================================================================
 import os
 import mysql.connector
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -232,12 +233,20 @@ def index():
 # --- CONTRACTOR DASHBOARD ---
 @app.route('/contractor-dashboard')
 def contractor_dashboard():
-    """Renders the protected contractor dashboard."""
+    """Renders the contractor dashboard with ACCURATE global status counts."""
     if 'contractor_logged_in' not in session:
         return redirect(url_for('contractor_login'))
 
     conn = get_db_connection()
-    status_counts = {'Pending': 0, 'Approved': 0, 'Rejected': 0, 'Revision Requested': 0, 'Total': 0}
+    
+    # Initialize counts with 0 so the dashboard doesn't break if a category is empty
+    status_counts = {
+        'Pending': 0, 
+        'Approved': 0, 
+        'Rejected': 0, 
+        'Revision Requested': 0, 
+        'Total': 0
+    }
     status_feed_items = []
 
     if conn is None:
@@ -246,30 +255,31 @@ def contractor_dashboard():
     try:
         cursor = conn.cursor(dictionary=True)
         
-        # 1. Query for Status Counts
+        # 1. ACCURATE GLOBAL COUNT: This looks at every single row in the REBATE table
         query_counts = """
-        SELECT Status, COUNT(*)
-        FROM REBATE
-        GROUP BY Status;
+            SELECT Status, COUNT(*) as count 
+            FROM REBATE 
+            GROUP BY Status;
         """
         cursor.execute(query_counts)
         results = cursor.fetchall()
 
-        total = 0
+        total_all = 0
         for row in results:
-            status_key = row['Status'].strip()
-            if status_key in status_counts:
-                status_counts[status_key] = row['COUNT(*)']
-            total += row['COUNT(*)']
+            # Match the database string to our dictionary keys
+            status_name = row['Status']
+            if status_name in status_counts:
+                status_counts[status_name] = row['count']
+            total_all += row['count']
             
-        status_counts['Total'] = total
+        status_counts['Total'] = total_all
         
-        # 2. Query for Status Feed Items (Last 5 Recent Rebates)
+        # 2. FEED: This only looks at the 5 most recent for display purposes
         query_feed = """
-        SELECT SOP_Number, Building, Status
-        FROM REBATE
-        ORDER BY SOP_Number DESC
-        LIMIT 5;
+            SELECT SOP_Number, Building, Status
+            FROM REBATE
+            ORDER BY SOP_Number DESC
+            LIMIT 5;
         """
         cursor.execute(query_feed)
         feed_results = cursor.fetchall()
@@ -281,7 +291,7 @@ def contractor_dashboard():
         cursor.close()
         
     except mysql.connector.Error as err:
-        print(f"Database query error fetching dashboard data from REBATE: {err}")
+        print(f"Database error: {err}")
         
     finally:
         if conn and conn.is_connected():
@@ -290,7 +300,7 @@ def contractor_dashboard():
     return render_template('contractor_dashboard.html', 
                            counts=status_counts, 
                            feed_items=status_feed_items,
-                           username=session.get('username', 'Demo Contractor'))
+                           username=session.get('username', 'Contractor'))
 
 # --- USER DASHBOARD ---
 @app.route('/user-dashboard')
@@ -391,57 +401,89 @@ def delete_draft(sop_number):
 
     return redirect(url_for('user_dashboard'))
 
-# --- VIEW ALL APPLICATIONS ---
+# --- VIEW ALL APPLICATIONS (COMPREHENSIVE VERSION) ---
 @app.route('/view-all-applications')
 def view_all_applications():
-    """Fetches all applications data for the contractor view."""
+    """Fetches all applications, joins financial data, and calculates dashboard totals."""
     if 'contractor_logged_in' not in session:
         return redirect(url_for('contractor_login'))
+    
+    filter_value = request.args.get('status_filter', 'all')
     
     conn = get_db_connection()
     applications = []
     
     if conn is None:
-        return render_template('view_all_applications.html', applications=applications)
+        return render_template('view_all_applications.html', applications=applications, current_filter=filter_value, total_committed=0, total_count=0)
 
     try:
         cursor = conn.cursor(dictionary=True)
         
-        query = """
-        SELECT SOP_Number, Category, Status, Building, Submission_Date, Department_ID, Sponsor_ID
-        FROM REBATE
-        ORDER BY Submission_Date DESC
+        # 1. Base Query with LEFT JOIN to catch Approved/Paid data
+        base_select = """
+            SELECT 
+                R.SOP_Number, R.Category, R.Status, R.Building, R.Submission_Date, 
+                R.Department_ID, R.Sponsor_ID,
+                RA.Approved_Amount,
+                RA.Disbursed_Date,
+                RA.Payment_Date
+            FROM REBATE R
+            LEFT JOIN REBATE_APPROVALS RA ON R.SOP_Number = RA.SOP_Number
         """
+        
+        # 2. Apply Filters
+        if filter_value == 'disbursed':
+            query = base_select + " WHERE RA.Payment_Date IS NOT NULL ORDER BY RA.Payment_Date DESC;"
+        elif filter_value == 'pending_disbursement':
+            query = base_select + " WHERE R.Status = 'Approved' AND RA.Payment_Date IS NULL ORDER BY R.Submission_Date ASC;"
+        else:
+            query = base_select + " ORDER BY R.Submission_Date DESC;"
+            
         cursor.execute(query)
         applications = cursor.fetchall()
+        
+        # 3. CALCULATE TOTALS (This is what you were looking for!)
+        total_committed = sum(app['Approved_Amount'] for app in applications if app['Approved_Amount'])
+        total_count = len(applications)
+
         cursor.close()
         
     except mysql.connector.Error as err:
-        print(f"Database query error in view_all_applications (REBATE table): {err}")
+        print(f"Database query error: {err}")
+        total_committed, total_count = 0, 0
         
     finally:
         if conn and conn.is_connected():
             conn.close()
 
-    return render_template('view_all_applications.html', applications=applications)
+    # Pass everything to the template
+    return render_template('view_all_applications.html', 
+                           applications=applications, 
+                           current_filter=filter_value,
+                           total_committed=total_committed,
+                           total_count=total_count)
 
 # --- SPONSOR APPROVALS VIEW --- (FUNCTIONAL ROUTE)
 @app.route('/sponsor-approvals')
 def sponsor_approvals():
-    """Fetches and displays rebate records that have a Sponsor ID assigned and includes approval details."""
+    """Fetches and filters rebate records based on sponsor payment status."""
     if 'contractor_logged_in' not in session:
         return redirect(url_for('contractor_login'))
+    
+    # Get the filter value from the URL (default to 'all')
+    filter_value = request.args.get('status_filter', 'all')
     
     conn = get_db_connection()
     approvals = []
     
     if conn is None:
         flash('Could not connect to the database.', 'error')
-        return render_template('sponsor_approvals.html', approvals=approvals)
+        return render_template('sponsor_approvals.html', approvals=approvals, current_filter=filter_value)
 
     try:
         cursor = conn.cursor(dictionary=True)
         
+        # Base query
         query = """
         SELECT 
             R.SOP_Number,
@@ -453,27 +495,30 @@ def sponsor_approvals():
             RA.Office_Notes
         FROM REBATE R
         LEFT JOIN REBATE_APPROVALS RA ON R.SOP_Number = RA.SOP_Number
-        WHERE 
-            R.Sponsor_ID IS NOT NULL -- This is the current, less-strict filter
-        ORDER BY R.SOP_Number DESC;
+        WHERE R.Sponsor_ID IS NOT NULL
         """
+
+        # Append filters based on user selection
+        if filter_value == 'pending':
+            query += " AND RA.Payment_Date IS NULL"
+        elif filter_value == 'approved':
+            query += " AND RA.Payment_Date IS NOT NULL"
+        
+        query += " ORDER BY R.SOP_Number DESC;"
 
         cursor.execute(query)
         approvals = cursor.fetchall()
         cursor.close()
         
     except mysql.connector.Error as err:
-        # 🛑 FIX: This block handles the database error
-        print(f"Database query error fetching sponsor approvals: {err}")
-        flash('Error fetching sponsor approval data.', 'error')
-        
+        print(f"Database error: {err}")
+        flash('Error fetching filtered sponsor data.', 'error')
     finally:
-        # 🛑 FIX: This block ensures the connection is closed
         if conn and conn.is_connected():
             conn.close()
 
-    # Pass the data to the new template (This line is now correctly outside the try/except/finally block)
-    return render_template('sponsor_approvals.html', approvals=approvals)
+    # Pass 'current_filter' back to the HTML so the dropdown stays on the selected option
+    return render_template('sponsor_approvals.html', approvals=approvals, current_filter=filter_value)
     
 # ==============================================================================
 # 📝 APPLICATION SUBMISSION & REVIEW ROUTES
@@ -872,100 +917,48 @@ def energy_report():
 # --- PAYMENT REPORT VIEW ---
 @app.route('/payment-report')
 def payment_report():
-    """Fetches and displays rebate records that have a final Payment_Date (disbursed funds)."""
     if 'contractor_logged_in' not in session:
         return redirect(url_for('contractor_login'))
 
-    conn = get_db_connection()
-    payments = []
-    
-    if conn is None:
-        flash('Could not connect to the database.', 'error')
-        return render_template('payment_report.html', payments=payments)
+    # 1. Get dates from the filter (or set defaults)
+    start_date = request.args.get('start_date', '2024-01-01')
+    end_date = request.args.get('end_date', '2024-12-31')
 
-    try:
-        cursor = conn.cursor(dictionary=True)
-        
-        # SQL Query to join REBATE and REBATE_APPROVALS tables
-        # We filter where Payment_Date IS NOT NULL to show only disbursed funds.
-        query = """
-        SELECT 
-            RA.SOP_Number AS App_ID,
-            R.Department_ID AS Department,
-            R.Category AS Project_Title,      -- Assuming Category acts as a brief Project Title
-            R.Status,                         -- Include Status from REBATE
-            RA.Approved_Amount AS Rebate_Paid,
-            RA.Payment_Date AS Last_Updated   -- Use Payment_Date as the update date for the report
-        FROM REBATE_APPROVALS RA
-        JOIN REBATE R ON RA.SOP_Number = R.SOP_Number
-        WHERE RA.Payment_Date IS NOT NULL
-        ORDER BY RA.Payment_Date DESC;
-        """
-        
-        cursor.execute(query)
-        payments = cursor.fetchall()
-        cursor.close()
-        
-    except mysql.connector.Error as err:
-        print(f"Database query error fetching payment report data: {err}")
-        flash('Error fetching payment report data.', 'error')
-        
-    finally:
-        if conn and conn.is_connected():
+    conn = get_db_connection()
+    payments = []  # <--- Initialize the variable here
+    grand_total = 0
+
+    if conn:
+        try:
+            cursor = conn.cursor(dictionary=True)
+            # 2. Fetch the data
+            query = """
+                SELECT 
+                    R.SOP_Number, 
+                    R.Department_ID, 
+                    R.Category, 
+                    RA.Payment_Date, 
+                    RA.Approved_Amount
+                FROM REBATE R
+                JOIN REBATE_APPROVALS RA ON R.SOP_Number = RA.SOP_Number
+                WHERE RA.Payment_Date BETWEEN %s AND %s
+            """
+            cursor.execute(query, (start_date, end_date))
+            payments = cursor.fetchall() # <--- This defines the 'payments' name
+            
+            # 3. Calculate total
+            grand_total = sum(p['Approved_Amount'] for p in payments if p['Approved_Amount'])
+            
+            cursor.close()
+        finally:
             conn.close()
 
-    # Pass the data to the new template using the variable 'payments'
-    return render_template('payment_report.html', payments=payments)
-
-# --- PROJECT REPORT VIEW ---
-@app.route('/project-report')
-def project_report():
-    """Fetches a detailed list of all projects, joining application and financial data."""
-    if 'contractor_logged_in' not in session:
-        return redirect(url_for('contractor_login'))
-    
-    conn = get_db_connection()
-    projects = []
-    
-    if conn is None:
-        flash('Could not connect to the database.', 'error')
-        return render_template('project_report.html', projects=projects)
-
-    try:
-        cursor = conn.cursor(dictionary=True)
-        
-        # SQL Query to join REBATE (R), APPLICANT (D), and REBATE_APPROVALS (RA)
-        query = """
-        SELECT 
-            R.SOP_Number,
-            D.Department_Name AS Department,
-            R.Category,
-            R.Building,
-            R.Submission_Date,
-            R.Status,
-            COALESCE(RA.Approved_Amount, 0.00) AS Approved_Amount,
-            RA.Disbursed_Date
-        FROM REBATE R
-        -- Using APPLICANT table name based on your successful troubleshooting:
-        LEFT JOIN APPLICANT D ON R.Department_ID = D.Department_ID
-        LEFT JOIN REBATE_APPROVALS RA ON R.SOP_Number = RA.SOP_Number
-        ORDER BY R.Submission_Date DESC;
-        """
-        
-        cursor.execute(query)
-        projects = cursor.fetchall()
-        cursor.close()
-        
-    except mysql.connector.Error as err:
-        print(f"Database query error fetching project report data: {err}")
-        flash('Error fetching project report data.', 'error')
-        
-    finally:
-        if conn and conn.is_connected():
-            conn.close()
-
-    # NOTE: The template name is now 'project_report.html'
-    return render_template('project_report.html', projects=projects)
+    # 4. Pass the variables to HTML
+    return render_template('payment_report.html', 
+                           payments=payments, 
+                           start_date=start_date, 
+                           end_date=end_date, 
+                           grand_total=grand_total)
 
 # ==============================================================================
 #  RUN APPLICATION

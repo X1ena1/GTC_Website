@@ -31,7 +31,6 @@
                             <a href="{{ url_for('energy_report') }}">Energy Report</a>
                             <a href="{{ url_for('payment_report') }}">Payment Report</a>
                             <a href="{{ url_for('sponsor_approvals') }}">Sponsor Approvals</a>
-                            <a href="{{ url_for('project_report') }}">Project Report</a>
                         </div>
                     </div>
                     <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
@@ -42,9 +41,28 @@
 
     <main class="dark-report-page"> 
         <div class="report-container">
-            <div class="report-header">
+            <div class="report-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 20px;">
                 <h2>Sponsor Approvals Report</h2>
+
+                <form method="GET" action="{{ url_for('sponsor_approvals') }}" class="filter-form">
+                    <label for="status_filter" style="font-weight: bold; margin-right: 10px;">Status:</label>
+                    <select name="status_filter" id="status_filter" onchange="this.form.submit()" style="padding: 8px; border-radius: 5px; background: #2a2a2a; color: white; border: 1px solid #444;">
+                        <option value="all" {% if current_filter == 'all' %}selected{% endif %}>All Sponsor Records</option>
+                        <option value="pending" {% if current_filter == 'pending' %}selected{% endif %}>⏳ Pending Payment</option>
+                        <option value="approved" {% if current_filter == 'approved' %}selected{% endif %}>✅ Fully Paid</option>
+                    </select>
+                </form>
             </div>
+            
+            <p style="color: #bbb; margin-bottom: 15px; font-size: 0.9rem;">
+                Showing <strong>{{ approvals|length }}</strong> record(s) for 
+                <strong>
+                    {% if current_filter == 'pending' %}Pending Sponsor Payment
+                    {% elif current_filter == 'approved' %}Fully Disbursed/Paid
+                    {% else %}All Sponsor Data
+                    {% endif %}
+                </strong>
+            </p>
         
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
@@ -57,56 +75,60 @@
             {% endwith %}
 
             {% if approvals %}
-                <table class="reports-table"> 
-                    <thead>
-                        <tr>
-                            <th>SOP Number</th>
-                            <th>Sponsor ID</th>
-                            <th>Approved Amount</th>
-                            <th>Disbursed Amount</th>
-                            <th>Disbursed Date</th>
-                            <th>Payment Date</th>
-                            <th>Office Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for approval in approvals %}
-                        <tr>
-                            <td>{{ approval.SOP_Number }}</td>
-                            <td>{{ approval.Sponsor_ID }}</td>
-                            
-                            <td>
-                                {% if approval.Approved_Amount is not none %}
-                                    ${{ approval.Approved_Amount | default(0) | round(2) }}
-                                {% else %}
-                                    <span class="status-pending">N/A</span>
-                                {% endif %}
-                            </td>
-                            
-                            <td>
-                                {% if approval.Disbursed_Amount_Display is not none %}
-                                    ${{ approval.Disbursed_Amount_Display | default(0) | round(2) }} 
-                                {% else %}
-                                    <span class="status-pending">Pending Payment</span>
-                                {% endif %}
-                            </td>
-                            
-                            <td>{{ approval.Disbursed_Date if approval.Disbursed_Date else 'N/A' }}</td>
-                            <td>
-                                {% if approval.Payment_Date %}
-                                    {{ approval.Payment_Date }}
-                                {% else %}
-                                    <span class="status-pending">Pending</span>
-                                {% endif %}
-                            </td>
-                            
-                            <td>{{ approval.Office_Notes | default('No notes.', True) | truncate(50, True) }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <table class="reports-table"> 
+                        <thead>
+                            <tr>
+                                <th>SOP Number</th>
+                                <th>Sponsor ID</th>
+                                <th>Approved Amount</th>
+                                <th>Disbursed Amount</th>
+                                <th>Disbursed Date</th>
+                                <th>Payment Date</th>
+                                <th>Office Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for approval in approvals %}
+                            <tr>
+                                <td>{{ approval.SOP_Number }}</td>
+                                <td>{{ approval.Sponsor_ID }}</td>
+                                
+                                <td>
+                                    {% if approval.Approved_Amount is not none %}
+                                        ${{ "{:,.2f}".format(approval.Approved_Amount) }}
+                                    {% else %}
+                                        <span class="status-pending">N/A</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <td>
+                                    {% if approval.Disbursed_Amount_Display is not none %}
+                                        ${{ "{:,.2f}".format(approval.Disbursed_Amount_Display) }} 
+                                    {% else %}
+                                        <span class="status-pending">Pending Payment</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <td>{{ approval.Disbursed_Date if approval.Disbursed_Date else 'N/A' }}</td>
+                                <td>
+                                    {% if approval.Payment_Date %}
+                                        {{ approval.Payment_Date }}
+                                    {% else %}
+                                        <span class="status-pending" style="color: #ffc107;">Pending</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <td>{{ approval.Office_Notes | default('No notes.', True) | truncate(50, True) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             {% else %}
-                <p class="no-data-message">No sponsor-related approval records found.</p>
+                <p class="no-data-message" style="text-align: center; padding: 40px; color: #888; background: #1a1a1a; border-radius: 8px;">
+                    No sponsor-related approval records found matching this filter.
+                </p>
             {% endif %}
         </div>
     </main>

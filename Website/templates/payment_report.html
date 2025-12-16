@@ -31,7 +31,6 @@
                             <a href="{{ url_for('energy_report') }}">Energy Report</a>
                             <a href="{{ url_for('payment_report') }}">Payment Report</a>
                             <a href="{{ url_for('sponsor_approvals') }}">Sponsor Approvals</a>
-                            <a href="{{ url_for('project_report') }}">Project Report</a>
                         </div>
                     </div>
                     <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
@@ -42,8 +41,29 @@
     
     <main class="dark-report-page">
         <div class="report-container">
-            <div class="report-header">
-                <h2>Payment Report</h2>
+            
+            <div class="report-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; margin-bottom: 25px;">
+                <div>
+                    <h2>Payment Report</h2>
+                    <p style="color: #bbb; margin-top: 5px;">Expenditure analysis by date range</p>
+                </div>
+
+                <form method="GET" action="{{ url_for('payment_report') }}" style="display: flex; gap: 15px; background: #2a2a2a; padding: 15px; border-radius: 8px; border: 1px solid #444;">
+                    <div style="display: flex; flex-direction: column;">
+                        <label style="color: #aaa; font-size: 11px; text-transform: uppercase; margin-bottom: 5px;">Start Date</label>
+                        <input type="date" name="start_date" value="{{ start_date }}" style="background: #1a1a1a; color: white; border: 1px solid #555; padding: 5px; border-radius: 4px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label style="color: #aaa; font-size: 11px; text-transform: uppercase; margin-bottom: 5px;">End Date</label>
+                        <input type="date" name="end_date" value="{{ end_date }}" style="background: #1a1a1a; color: white; border: 1px solid #555; padding: 5px; border-radius: 4px;">
+                    </div>
+                    <button type="submit" style="background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; align-self: flex-end;">Update</button>
+                </form>
+            </div>
+
+            <div style="background: #1e1e1e; padding: 20px; border-radius: 8px; border-left: 5px solid #2ecc71; margin-bottom: 25px;">
+                <p style="color: #888; margin: 0; font-size: 12px; text-transform: uppercase;">Total Disbursed (Selected Period)</p>
+                <h2 style="color: white; margin: 5px 0; font-size: 28px;">${{ "{:,.2f}".format(grand_total or 0) }}</h2>
             </div>
 
             <table class="reports-table">
@@ -51,9 +71,9 @@
                     <tr>
                         <th>App ID</th>
                         <th>Department</th>
-                        <th>Project Title</th>
-                        <th>Last Updated</th>
-                        <th>Rebate Paid</th>
+                        <th>Project Title (Category)</th>
+                        <th>Payment Date</th>
+                        <th>Amount Paid</th>
                     </tr>
                 </thead>
                 
@@ -61,16 +81,16 @@
                     {% if payments %}
                         {% for payment in payments %}
                         <tr>
-                            <td>{{ payment.App_ID }}</td>
-                            <td>{{ payment.Department }}</td>
-                            <td>{{ payment.Project_Title }}</td>
-                            <td>{{ payment.Last_Updated }}</td>
-                            <td>${{ payment.Rebate_Paid | round(2) }}</td>
+                            <td>{{ payment.SOP_Number }}</td>
+                            <td>{{ payment.Department_ID }}</td>
+                            <td style="color: #3498db; font-weight: bold;">{{ payment.Category }}</td>
+                            <td>{{ payment.Payment_Date }}</td>
+                            <td style="font-weight: bold;">${{ "{:,.2f}".format(payment.Approved_Amount) }}</td>
                         </tr>
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="5" class="no-data">No disbursed payments found.</td>
+                            <td colspan="5" class="no-data" style="padding: 40px; text-align: center; color: #777;">No disbursed payments found for this range.</td>
                         </tr>
                     {% endif %}
                 </tbody>
