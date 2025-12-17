@@ -4,12 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Application Review</title>
-    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/application_review.css') }}">
-    </head>
+    <style>
+        .status-badge { padding: 5px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; }
+        .status-approved { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid #2ecc71; }
+        .status-rejected { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c; }
+        .status-pending { background: rgba(241, 196, 15, 0.2); color: #f1c40f; border: 1px solid #f1c40f; }
+        
+        .decision-receipt {
+            background: #1a1a1a; border: 1px solid #333; padding: 25px;
+            border-radius: 8px; margin-top: 20px; border-left: 5px solid #3498db;
+        }
+        .amount-display-box {
+            background: #252525; padding: 15px; border-radius: 6px; 
+            margin-bottom: 20px; border: 1px solid #444;
+        }
+        .timestamp-footer {
+            margin-top: 15px; padding-top: 10px; border-top: 1px solid #2a2a2a;
+            font-size: 11px; color: #666; display: flex; justify-content: space-between;
+        }
+    </style>
+</head>
 <body>
-    <header class="main-header">
-        </header>
+    <header class="main-header"></header>
 
     <main class="content-area">
         <div class="review-header">
@@ -19,49 +36,66 @@
         <section class="application-details">
             <p><strong>EIA ID :</strong> {{ details.SOP_Number }}</p>
             <p><strong>Department :</strong> {{ details.Department_ID }}</p>
-            <p><strong>Status :</strong> {{ details.Status }}</p>
-            
-            <hr>
-
-            <div class="office-notes-display">
-                <p><strong>Internal Review Notes:</strong></p>
-                <p class="notes-content">{{ details.Office_Notes | default("No previous notes recorded.", true) }}</p>
-            </div>
+            <p><strong>Current Status :</strong> 
+                <span class="status-badge status-{{ details.Status | lower | replace(' ', '-') }}">
+                    {{ details.Status }}
+                </span>
+            </p>
             <hr>
             <p><strong>Project type :</strong> {{ details.Category }} (Building: {{ details.Building }})</p>
-            
             <p><strong>Documents Uploaded :</strong> Proposal.pdf <button>View</button> Specs.docx <button>View</button></p>
             <hr>
         </section>
 
-        <form method="POST" action="{{ url_for('process_decision', application_id=details.SOP_Number) }}">
-            
-            <div class="form-group approved-amount-input">
-                <h3>Approved Rebate Amount:</h3>
-                <input 
-                    type="number" 
-                    step="0.01" 
-                    min="0" 
-                    id="approved_amount" 
-                    name="approved_amount" 
-                    placeholder="Enter final amount (e.g., 15000.00)" 
-                    class="form-control" 
-                    required>
-                <small class="form-text text-muted">This amount will be recorded in the financial approvals table.</small>
+        {% if details.Status == 'Pending' or details.Status == 'Request revision' %}
+            <form method="POST" action="{{ url_for('process_decision', application_id=details.SOP_Number) }}">
+                <div class="form-group approved-amount-input">
+                    <h3>Approved Rebate Amount:</h3>
+                    <input 
+                        type="number" 
+                        step="0.01" 
+                        min="0" 
+                        id="approved_amount" 
+                        name="approved_amount" 
+                        placeholder="Enter final amount (e.g., 15000.00)" 
+                        class="form-control" 
+                        required>
+                    <small class="form-text text-muted">Amount required for financial records.</small>
+                </div>
+                
+                <h3>Notes to Applicant :</h3>
+                <textarea name="notes_to_applicant" rows="5" placeholder="Enter comments or reasons for decision..." required></textarea>
+                
+                <div class="action-buttons">
+                    <button type="submit" name="action" value="Approved" class="btn btn-approve">Approve</button>
+                    <button type="submit" name="action" value="Request revision" class="btn btn-revision">Request revision</button>
+                    <button type="submit" name="action" value="Rejected" class="btn btn-reject">Reject</button>
+                </div>
+            </form>
+
+        {% else %}
+            <div class="decision-receipt">
+                <h3 style="color: white; margin-top: 0;">Official Decision Record</h3>
+                
+                <div class="amount-display-box">
+                    <p style="margin: 0; color: #888; font-size: 11px; text-transform: uppercase;">Final Approved Amount</p>
+                    <h2 style="margin: 5px 0; color: #2ecc71;">${{ "{:,.2f}".format(details.Approved_Amount or 0.0) }}</h2>
+                </div>
+
+                <p style="color: #888; font-size: 11px; text-transform: uppercase; margin-bottom: 5px;">Internal Review Notes:</p>
+                <p style="color: #eee; font-style: italic; line-height: 1.6; background: #252525; padding: 12px; border-radius: 4px;">
+                    "{{ details.Office_Notes or 'No notes recorded.' }}"
+                </p>
+
+                <div class="timestamp-footer">
+                    <span><strong>Reviewer:</strong> {{ session.get('username', 'System User') }}</span>
+                    <span><strong>Processed Date:</strong> {{ details.Decision_Date or 'See notes for timestamp' }}</span>
+                </div>
             </div>
-            
-            <h3>Notes to Applicant :</h3>
-            <textarea name="notes_to_applicant" rows="5" placeholder="Enter comments, revisions required, or reasons for rejection..."></textarea>
-            
-            <div class="action-buttons">
-                <button type="submit" name="action" value="Approve" class="btn btn-approve">Approve</button>
-                <button type="submit" name="action" value="Request revision" class="btn btn-revision">Request revision</button>
-                <button type="submit" name="action" value="Reject" class="btn btn-reject">Reject</button>
-            </div>
-        </form>
+        {% endif %}
 
         <a href="{{ url_for('view_all_applications') }}" class="back-link">
-            &larr; Back
+            &larr; Back to Dashboard
         </a>
     </main>
 </body>

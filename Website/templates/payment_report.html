@@ -29,8 +29,8 @@
                         <button class="dropbtn">Admin & Reports</button>
                         <div class="dropdown-content">
                             <a href="{{ url_for('energy_report') }}">Energy Report</a>
-                            <a href="{{ url_for('payment_report') }}">Payment Report</a>
                             <a href="{{ url_for('sponsor_approvals') }}">Sponsor Approvals</a>
+                            <a href="{{ url_for('view_all_applications') }}">Application Hub</a>
                         </div>
                     </div>
                     <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
@@ -45,52 +45,66 @@
             <div class="report-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; margin-bottom: 25px;">
                 <div>
                     <h2>Payment Report</h2>
-                    <p style="color: #bbb; margin-top: 5px;">Expenditure analysis by date range</p>
+                    <p style="color: #636363; margin-top: 5px;">Expenditure analysis by date range (Joined Records)</p>
                 </div>
 
-                <form method="GET" action="{{ url_for('payment_report') }}" style="display: flex; gap: 15px; background: #2a2a2a; padding: 15px; border-radius: 8px; border: 1px solid #444;">
+                <form method="GET" action="{{ url_for('payment_report') }}" style="display: flex; gap: 15px; background: #d9f2d2; padding: 15px; border-radius: 8px; border: 1px solid #d9f2d2;">
                     <div style="display: flex; flex-direction: column;">
-                        <label style="color: #aaa; font-size: 11px; text-transform: uppercase; margin-bottom: 5px;">Start Date</label>
-                        <input type="date" name="start_date" value="{{ start_date }}" style="background: #1a1a1a; color: white; border: 1px solid #555; padding: 5px; border-radius: 4px;">
+                        <label style="color: #636363; font-size: 11px; text-transform: uppercase; margin-bottom: 5px;">Start Date</label>
+                        <input type="date" name="start_date" value="{{ start_date }}" style="background: #d9f2d2a0; color: rgb(82, 82, 82); border: 1px solid #555; padding: 5px; border-radius: 4px;">
                     </div>
                     <div style="display: flex; flex-direction: column;">
-                        <label style="color: #aaa; font-size: 11px; text-transform: uppercase; margin-bottom: 5px;">End Date</label>
-                        <input type="date" name="end_date" value="{{ end_date }}" style="background: #1a1a1a; color: white; border: 1px solid #555; padding: 5px; border-radius: 4px;">
+                        <label style="color: #636363; font-size: 11px; text-transform: uppercase; margin-bottom: 5px;">End Date</label>
+                        <input type="date" name="end_date" value="{{ end_date }}" style="background: #d9f2d2a0; color: rgb(82, 82, 82); border: 1px solid #555; padding: 5px; border-radius: 4px;">
                     </div>
                     <button type="submit" style="background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; align-self: flex-end;">Update</button>
                 </form>
             </div>
 
-            <div style="background: #1e1e1e; padding: 20px; border-radius: 8px; border-left: 5px solid #2ecc71; margin-bottom: 25px;">
-                <p style="color: #888; margin: 0; font-size: 12px; text-transform: uppercase;">Total Disbursed (Selected Period)</p>
-                <h2 style="color: white; margin: 5px 0; font-size: 28px;">${{ "{:,.2f}".format(grand_total or 0) }}</h2>
+            <div style="background: #d9f2d2; padding: 20px; border-radius: 8px; border-left: 5px solid #2ecc71; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <p style="color: #636363; margin: 0; font-size: 12px; text-transform: uppercase;">Total Disbursed (Filtered Period)</p>
+                    <h2 style="color: rgb(0, 0, 0); margin: 5px 0; font-size: 28px;">${{ "{:,.2f}".format(grand_total or 0) }}</h2>
+                </div>
+                <div style="text-align: right;">
+                    <p style="color: #888; margin: 0; font-size: 12px;">RECORD COUNT</p>
+                    <h3 style="color: #2ecc71; margin: 0;">{{ payments|length }} Items</h3>
+                </div>
             </div>
 
             <table class="reports-table">
                 <thead>
                     <tr>
-                        <th>App ID</th>
-                        <th>Department</th>
-                        <th>Project Title (Category)</th>
+                        <th>SOP #</th>
+                        <th>Dept ID</th>
+                        <th>Project Category</th>
                         <th>Payment Date</th>
-                        <th>Amount Paid</th>
+                        <th style="text-align: right;">Amount Paid</th>
                     </tr>
                 </thead>
                 
                 <tbody>
                     {% if payments %}
-                        {% for payment in payments %}
+                        {% for p in payments %}
                         <tr>
-                            <td>{{ payment.SOP_Number }}</td>
-                            <td>{{ payment.Department_ID }}</td>
-                            <td style="color: #3498db; font-weight: bold;">{{ payment.Category }}</td>
-                            <td>{{ payment.Payment_Date }}</td>
-                            <td style="font-weight: bold;">${{ "{:,.2f}".format(payment.Approved_Amount) }}</td>
+                            <td style="font-weight: bold; color: #3498db;">{{ p.SOP_Number }}</td>
+                            <td>{{ p.Department_ID }}</td>
+                            <td>{{ p.Category }}</td>
+                            <td>
+                                <span style="color: #bbb;">{{ p.Payment_Date }}</span>
+                            </td>
+                            <td style="font-weight: bold; color: #2ecc71; text-align: right;">
+                                ${{ "{:,.2f}".format(p.Approved_Amount or 0) }}
+                            </td>
                         </tr>
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="5" class="no-data" style="padding: 40px; text-align: center; color: #777;">No disbursed payments found for this range.</td>
+                            <td colspan="5" style="padding: 60px; text-align: center; color: #555;">
+                                <div style="font-size: 40px; margin-bottom: 10px;">📊</div>
+                                No financial records found for the period <br> 
+                                <span style="color: #3498db;">{{ start_date }}</span> to <span style="color: #3498db;">{{ end_date }}</span>
+                            </td>
                         </tr>
                     {% endif %}
                 </tbody>
