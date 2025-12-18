@@ -102,7 +102,6 @@ def admin_set_password():
     cursor = conn.cursor()
     
     try:
-        # ⚠️ WARNING: Saving plaintext password directly!
         update_query = "UPDATE DEPARTMENT_USERS SET Password_ID = %s WHERE Department_ID = %s"
         cursor.execute(update_query, (new_password_plaintext, dept_id))
         conn.commit()
@@ -128,11 +127,10 @@ def admin_set_password():
 @app.route('/logout')
 def logout():
     """Logs the user out by wiping the entire session clean."""
-    session.clear() # This kills ALL keys: sponsor, contractor, and user
+    session.clear() 
     flash('Successfully logged out.', 'success')
     return redirect(url_for('index'))
 
-# This function name MUST be 'contractor_login'
 @app.route('/login')
 def contractor_login():
     return render_template('contractor_login.html')
@@ -635,8 +633,6 @@ def user_save_draft():
         department_id = session.get('user_id') 
         
         # --- INSERT INTO REBATE TABLE WITH 'Draft' STATUS ---
-        # Note: We are using NOW() for Submission_Date, but for a draft, you might
-        # prefer to use a NULLable column for Draft_Save_Date instead.
         sql = """
         INSERT INTO REBATE
         (Category, Status, Building, Submission_Date, Department_ID, Sponsor_ID, Office_Notes)
@@ -655,8 +651,6 @@ def user_save_draft():
         conn.commit()
         cursor.close()
         
-        # NOTE: A critical next step would be to get the new SOP_Number and redirect 
-        # the user back to the edit page for that specific draft, but for now:
         flash("Your application draft has been saved. You can continue editing later.", 'success')
         return redirect(url_for('user_dashboard'))
 
@@ -680,8 +674,6 @@ def review_application(application_id):
     try:
         cursor = conn.cursor(dictionary=True)
         
-        # REMOVED R.Description because it's not in your list
-        # Keeping R.Office_Notes as it is in your REBATE table
         query = """
         SELECT 
             R.SOP_Number, R.Category, R.Building, R.Department_ID, R.Status, R.Office_Notes,
@@ -997,7 +989,6 @@ def energy_report():
     try:
         cursor = conn.cursor(dictionary=True)
         
-# SQL Query: Starts with CAMPAIGN and LEFT JOINs to REBATE and REBATE_APPROVALS
         query = """
         SELECT 
             C.Campaign_Name,
@@ -1006,7 +997,7 @@ def energy_report():
             SUM(CASE WHEN R.Status = 'Approved' THEN 1 ELSE 0 END) AS Approved_Applications,
             COALESCE(SUM(RA.Approved_Amount), 0) AS Total_Approved_Rebates
         FROM CAMPAIGN C
-        -- ✅ FINAL FIXED JOIN: Joining Category to Category
+        -- FINAL FIXED JOIN: Joining Category to Category
         LEFT JOIN REBATE R ON C.Category = R.Category
         LEFT JOIN REBATE_APPROVALS RA ON R.SOP_Number = RA.SOP_Number
         GROUP BY C.Campaign_ID, C.Campaign_Name, C.Category
