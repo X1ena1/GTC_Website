@@ -162,23 +162,23 @@
             <div class="eia-form-content">
                 
                 <label for="department" class="form-label">Submitting Department:</label>
-                <input type="text" id="department" name="department" placeholder="e.g., Facilities Management" required>
-                
+                <input type="text" id="department" name="department" 
+                    placeholder="e.g., Facilities Management" 
+                    required minlength="3">
+
                 <label for="project_type" class="form-label">Project Type (Category):</label>
-                <input type="text" id="project_type" name="project_type" placeholder="e.g., LED Lighting Upgrade" required>
-                
+                <input type="text" id="project_type" name="project_type" 
+                    placeholder="e.g., LED Lighting Upgrade" 
+                    required pattern="[A-Za-z\s]+">
+
                 <label for="building" class="form-label">Building Name/ID:</label>
-                <input type="text" id="building" name="building" placeholder="e.g., Bilger Hall, IT Center" required>
-                
-                <label for="sponsor" class="form-label">Application Sponsor:</label>
-                <select id="sponsor" name="sponsor">
-                    <option value="1">Contractor (Default)</option>
-                    <option value="2">Unit Sponsor</option>
-                    <option value="3">Energy Office</option>
-                </select>
+                <input type="text" id="building" name="building" 
+                    placeholder="e.g., Bilger Hall" required>
 
                 <label for="description" class="description-label">Project Description:</label>
-                <textarea id="description" name="description" rows="5" placeholder="Provide a brief, detailed description of the energy project and scope."></textarea>
+                <textarea id="description" name="description" 
+                        rows="5" maxlength="500" 
+                        placeholder="Min 20 characters required..." required minlength="20"></textarea>
 
                 <div class="form-actions">
                     <button type="button" class="action-button draft-btn" onclick="submitForm('{{ url_for('user_save_draft') }}')">Save Draft</button>
@@ -201,13 +201,15 @@
         }
         
         function submitForm(actionUrl) {
-            // Get the form element
             const form = document.getElementById('eia-form');
             
-            // Set the form's action to the correct URL (submit or save draft)
-            form.action = actionUrl;
+            // Check if the form is valid according to HTML5 rules
+            if (!form.checkValidity()) {
+                form.reportValidity(); // Shows the user exactly what is wrong
+                return;
+            }
             
-            // Submit the form
+            form.action = actionUrl;
             form.submit();
         }
     </script>

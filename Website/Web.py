@@ -76,7 +76,7 @@ def sync_rebate_approvals():
     finally:
         conn.close()
 
-# --- ADMIN PASSWORD SETTER ROUTE (NON-SECURE PLAINTEXT) ---
+# --- ADMIN PASSWORD SETTER ROUTE ---
 @app.route('/admin/set-password', methods=['POST'])
 def admin_set_password():
     """
@@ -124,72 +124,19 @@ def admin_set_password():
 # 🔐 AUTHENTICATION & LOGIN ROUTES
 # ==============================================================================
 
-# --- UNIVERSAL LOGOUT ---
+# --- LOGOUT ---
 @app.route('/logout')
 def logout():
-    """Logs the user out by clearing all sessions."""
-    session.pop('contractor_logged_in', None)
-    session.pop('username', None) 
-    session.pop('user_logged_in', None)
-    session.pop('user_username', None)
+    """Logs the user out by wiping the entire session clean."""
+    session.clear() # This kills ALL keys: sponsor, contractor, and user
+    flash('Successfully logged out.', 'success')
     return redirect(url_for('index'))
 
-# --- CONTRACTOR LOGIN FORM ---
-@app.route('/contractor-login', methods=['GET'])
+# This function name MUST be 'contractor_login'
+@app.route('/login')
 def contractor_login():
-    """Renders the contractor login page template."""
     return render_template('contractor_login.html')
 
-# --- CONTRACTOR LOGIN SUBMIT (PLAINTEXT COMPARISON) ---
-@app.route('/login-submit', methods=['POST'])
-def login_submit():
-    """
-    ⚠️ NON-SECURE: Handles contractor authentication by comparing the plaintext password
-    against the value stored in the REVIEWER.Password_ID column.
-    """
-    
-    email = request.form.get('username')
-    password_attempt = request.form.get('password')
-    
-    conn = get_db_connection()
-    if conn is None:
-        flash('Could not connect to the database. Try again later.', 'error')
-        return redirect(url_for('contractor_login'))
-
-    user = None
-    try:
-        cursor = conn.cursor(dictionary=True)
-        # 🚨 FIX: Changed Password_Hash to Password_ID to match your database change.
-        query = "SELECT Employee_ID, Employee_Name, Password_ID FROM REVIEWER WHERE Email = %s"
-        cursor.execute(query, (email,))
-        user = cursor.fetchone()
-        cursor.close()
-        
-    except mysql.connector.Error as err:
-        print(f"Database query error during login: {err}")
-        flash('A database error occurred during login.', 'error')
-        return redirect(url_for('contractor_login'))
-    finally:
-        if conn and conn.is_connected():
-            conn.close()
-
-    if user:
-        # ⚠️ NON-SECURE CHECK: Plaintext comparison against database value
-        if user['Password_ID'] == password_attempt: # <--- NOTE: Uses Password_ID here too
-            # --- SUCCESSFUL LOGIN ---
-            session['contractor_logged_in'] = True
-            session['employee_id'] = user['Employee_ID']
-            session['username'] = user['Employee_Name']
-            flash(f"Welcome back, {user['Employee_Name']}.", 'success')
-            return redirect(url_for('contractor_dashboard'))
-        else:
-            # Password mismatch
-            flash('Invalid username or password.', 'error')
-            return redirect(url_for('contractor_login'))
-    else:
-        # User (Email) not found
-        flash('Invalid username or password.', 'error')
-        return redirect(url_for('contractor_login'))
 
 # --- USER LOGIN & SUBMIT (DEMO) ---
 @app.route('/user-login', methods=['GET'])
@@ -197,59 +144,62 @@ def user_login():
     """Renders the standard user login page template."""
     return render_template('user_login.html')
 
-@app.route('/user-login-submit', methods=['POST'])
-def user_login_submit():
-    """
-    ⚠️ NON-SECURE: Handles user (department) authentication by comparing the plaintext password
-    against the value stored in the Department_Users.Password_ID column.
-    """
-    login_id = request.form.get('username') # User inputs Department_ID here
-    password_attempt = request.form.get('password')
+@app.route('/login-submit', methods=['POST'])
+def login_submit():
+    identifier = request.form.get('username').strip() # .strip() removes accidental spaces
+    password_attempt = request.form.get('password').strip()
     
-    try:
-        dept_id = int(login_id)
-    except (ValueError, TypeError):
-        flash('Invalid login ID format. Please use your Department ID.', 'danger')
-        return redirect(url_for('user_login'))
-
     conn = get_db_connection()
-    if conn is None:
-        flash('Could not connect to the database. Try again later.', 'error')
-        return redirect(url_for('user_login'))
+    cursor = conn.cursor(dictionary=True)
 
-    user = None
     try:
-        cursor = conn.cursor(dictionary=True)
-        # Query the DEPARTMENT_USERS table using Department_ID
-        query = "SELECT Department_ID, Department_Name, Password_ID FROM APPLICANT WHERE Department_ID = %s"        
-        cursor.execute(query, (dept_id,))
-        user = cursor.fetchone()
-        cursor.close()
-        
-    except mysql.connector.Error as err:
-        print(f"Database query error during user login: {err}")
-        flash('A database error occurred during login.', 'error')
-        return redirect(url_for('user_login'))
-    finally:
-        if conn and conn.is_connected():
-            conn.close()
+        # 1. Check Reviewers
+        cursor.execute("SELECT * FROM REVIEWER WHERE Email = %s", (identifier,))
+        reviewer = cursor.fetchone()
+        if reviewer and str(reviewer['Password_ID']) == str(password_attempt):
+            session.clear()
+            session['contractor_logged_in'] = True
+            session['username'] = reviewer['Employee_Name']
+            return redirect(url_for('contractor_dashboard'))
 
-    if user:
-        # ⚠️ NON-SECURE CHECK: Plaintext comparison
-        # NOTE: We assume the user table is named DEPARTMENT_USERS
-        if user['Password_ID'] == password_attempt: 
-            # --- SUCCESSFUL LOGIN ---
+        # 2. Check Sponsors
+        cursor.execute("SELECT * FROM APPLICATION_SPONSOR WHERE Email = %s", (identifier,))
+        sponsor = cursor.fetchone()
+        if sponsor and str(sponsor['Password_ID']) == str(password_attempt):
+            session.clear()
+            session['sponsor_logged_in'] = True
+            session['sponsor_id'] = sponsor['Sponsor_ID']
+            session['sponsor_name'] = sponsor['Sponsor_Name']
+            return redirect(url_for('sponsor_dashboard'))
+
+        # 3. Check Applicants (Users)
+        # We check both Email and Department_ID
+        cursor.execute("SELECT * FROM APPLICANT WHERE Email = %s OR Department_ID = %s", (identifier, identifier))
+        applicant = cursor.fetchone()
+        if applicant and str(applicant['Password_ID']) == str(password_attempt):
+            session.clear()
             session['user_logged_in'] = True
-            session['user_id'] = user['Department_ID'] # Store ID for later lookup
-            session['user_username'] = user['Department_Name']
-            flash(f"Welcome, {user['Department_Name']}.", 'success')
+            session['user_id'] = applicant['Department_ID']
+            session['user_username'] = applicant['Department_Name']
             return redirect(url_for('user_dashboard'))
+
+        # --- IF WE GET HERE, LOGIN FAILED ---
+        flash('Invalid username or password. Please try again.', 'danger')
+        
+        # Determine which page to send them back to so they don't get "lost"
+        # If they used an email, they were likely a contractor/sponsor
+        if '@' in identifier:
+            return redirect(url_for('contractor_login'))
         else:
-            flash('Invalid login ID or password.', 'danger')
             return redirect(url_for('user_login'))
-    else:
-        flash('Invalid login ID or password.', 'danger')
-        return redirect(url_for('user_login'))
+
+    except Exception as e:
+        print(f"Login Error: {e}")
+        flash('An error occurred during login.', 'danger')
+        return redirect(url_for('index'))
+    finally:
+        cursor.close()
+        conn.close()
 
 # ==============================================================================
 # 🏠 DASHBOARD & CORE VIEW ROUTES
@@ -258,11 +208,13 @@ def user_login_submit():
 # --- INDEX ROUTE ---
 @app.route("/")
 def index():
-    """Renders the appropriate dashboard or the public homepage."""
-    if session.get('user_logged_in'):
-        return redirect(url_for('user_dashboard'))
+    """Renders the appropriate dashboard based on exact session type."""
+    if session.get('sponsor_logged_in'):
+        return redirect(url_for('sponsor_approvals')) # Lane 1: Sponsors
     elif session.get('contractor_logged_in'):
-        return redirect(url_for('contractor_dashboard'))
+        return redirect(url_for('contractor_dashboard')) # Lane 2: Reviewers
+    elif session.get('user_logged_in'):
+        return redirect(url_for('user_dashboard')) # Lane 3: Applicants
     else:
         return render_template('index.html')
 
@@ -420,11 +372,17 @@ def view_all_applications():
     """
 
     # Filter Logic
-    if status_filter == 'disbursed':
+    if status_filter == 'pending':
+        # Shows applications that are still awaiting a decision
+        query += " WHERE R.Status = 'Pending'"
+    elif status_filter == 'disbursed':
+        # Approved and already paid
         query += " WHERE R.Status = 'Approved' AND RA.Payment_Date IS NOT NULL"
     elif status_filter == 'pending_disbursement':
+        # Approved but not yet paid
         query += " WHERE R.Status = 'Approved' AND RA.Payment_Date IS NULL"
     elif status_filter == 'rejected':
+        # Denied applications
         query += " WHERE R.Status = 'Rejected'"
 
     cursor = conn.cursor(dictionary=True)
@@ -444,62 +402,79 @@ def view_all_applications():
 # --- SPONSOR APPROVALS VIEW --- (FUNCTIONAL ROUTE)
 @app.route('/sponsor-approvals')
 def sponsor_approvals():
-    """Fetches and filters rebate records based on sponsor payment status."""
-    if 'contractor_logged_in' not in session:
+    """Fetches and filters records for BOTH Sponsors (own data) and Contractors (all data)."""
+    
+    # 1. GATEKEEPER: Check if ANY authorized person is logged in
+    is_sponsor = session.get('sponsor_logged_in')
+    is_contractor = session.get('contractor_logged_in')
+
+    if not is_sponsor and not is_contractor:
+        flash("Please log in to view this report.")
         return redirect(url_for('contractor_login'))
     
-# 🚀 TRIGGER THE SYNC HERE
-    sync_rebate_approvals()
-
-    # Get the filter value from the URL (default to 'all')
     filter_value = request.args.get('status_filter', 'all')
-    
     conn = get_db_connection()
-    approvals = []
+    cursor = conn.cursor(dictionary=True)
     
-    if conn is None:
-        flash('Could not connect to the database.', 'error')
-        return render_template('sponsor_approvals.html', approvals=approvals, current_filter=filter_value)
-
     try:
-        cursor = conn.cursor(dictionary=True)
-        
-        # Base query
-        query = """
-        SELECT 
-            R.SOP_Number,
-            R.Sponsor_ID,
-            RA.Approved_Amount,
-            RA.Approved_Amount AS Disbursed_Amount_Display,
-            RA.Disbursed_Date,
-            RA.Payment_Date,
-            RA.Office_Notes
-        FROM REBATE R
-        LEFT JOIN REBATE_APPROVALS RA ON R.SOP_Number = RA.SOP_Number
-        WHERE R.Sponsor_ID IS NOT NULL
-        """
+        # 2. DATA LOGIC: If it's a Sponsor, filter by their ID. If Contractor, show everything.
+        if is_sponsor:
+            sponsor_id = session.get('sponsor_id')
+            query = "SELECT * FROM REBATE_APPROVALS WHERE Sponsor_ID = %s"
+            params = (sponsor_id,)
+        else:
+            # It's a Contractor, show ALL sponsor records
+            query = "SELECT * FROM REBATE_APPROVALS WHERE 1=1"
+            params = ()
 
-        # Append filters based on user selection
+        # 3. APPLY FILTERS (Status)
         if filter_value == 'pending':
-            query += " AND RA.Payment_Date IS NULL"
+            query += " AND Payment_Date IS NULL"
         elif filter_value == 'approved':
-            query += " AND RA.Payment_Date IS NOT NULL"
+            query += " AND Payment_Date IS NOT NULL"
         
-        query += " ORDER BY R.SOP_Number DESC;"
-
-        cursor.execute(query)
+        query += " ORDER BY SOP_Number DESC"
+        
+        cursor.execute(query, params)
         approvals = cursor.fetchall()
-        cursor.close()
         
     except mysql.connector.Error as err:
-        print(f"Database error: {err}")
-        flash('Error fetching filtered sponsor data.', 'error')
+        print(f"Report Error: {err}")
+        approvals = []
     finally:
-        if conn and conn.is_connected():
-            conn.close()
+        conn.close()
 
-    # Pass 'current_filter' back to the HTML so the dropdown stays on the selected option
-    return render_template('sponsor_approvals.html', approvals=approvals, current_filter=filter_value)
+    return render_template('sponsor_approvals.html', 
+                           approvals=approvals, 
+                           current_filter=filter_value, 
+                           sponsor_name=session.get('sponsor_name') or "Contractor View")
+
+@app.route('/sponsor-dashboard')
+def sponsor_dashboard():
+    if 'sponsor_logged_in' not in session:
+        return redirect(url_for('contractor_login'))
+    
+    sponsor_id = session.get('sponsor_id')
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    # ADDED R.Office_Notes to the SELECT list below
+    query = """
+        SELECT R.SOP_Number, R.Category, R.Building, R.Status, R.Office_Notes,
+               RA.Payment_Date, RA.Approved_Amount
+        FROM REBATE R
+        LEFT JOIN REBATE_APPROVALS RA ON R.SOP_Number = RA.SOP_Number
+        WHERE R.Sponsor_ID = %s
+        ORDER BY R.Submission_Date DESC
+    """
+    
+    cursor.execute(query, (sponsor_id,))
+    apps = cursor.fetchall()
+    conn.close()
+    
+    return render_template('sponsor_dashboard.html', 
+                           applications=apps, 
+                           sponsor_name=session.get('sponsor_name'))
     
 # ==============================================================================
 # 📝 APPLICATION SUBMISSION & REVIEW ROUTES
@@ -568,60 +543,65 @@ def submit_eia():
 # --- USER EIA FORM SUBMISSION (POST) ---
 @app.route('/user-submit-eia', methods=['POST'])
 def user_submit_eia():
-    """
-    Handles the submission of the New EIA Application form data from a standard user, 
-    inserting the record into the REBATE table for contractor review.
-    """
     if 'user_logged_in' not in session:
         return redirect(url_for('user_login'))
     
+    # --- 1. GATHER & CLEAN FORM DATA ---
+    # .strip() removes accidental leading/trailing spaces
+    category = request.form.get('project_type', '').strip()
+    building = request.form.get('building', '').strip()
+    sponsor_id_raw = request.form.get('sponsor')
+    applicant_description = request.form.get('description', '').strip()
+    department_id = session.get('user_id')
+
+    # --- 2. R-7 DATA VALIDATION ---
+    
+    # Check for Required Fields (Validates existence)
+    if not all([category, building, applicant_description]):
+        flash("Validation Error: All fields are required.", 'error')
+        return redirect(url_for('user_new_eia_application'))
+
+    # Validate Data Types (Ensures sponsor_id is a numeric value)
+    try:
+        sponsor_id = int(sponsor_id_raw)
+    except (ValueError, TypeError):
+        flash("Validation Error: Invalid Sponsor selection.", 'error')
+        return redirect(url_for('user_new_eia_application'))
+
+    # Validate Allowable Values (e.g., Description must be detailed enough)
+    if len(applicant_description) < 10:
+        flash("Validation Error: Project description must be at least 10 characters.", 'warning')
+        return redirect(url_for('user_new_eia_application'))
+
+    # --- 3. DATABASE OPERATIONS ---
     conn = get_db_connection()
     if conn is None:
-        flash("Database connection error. Application not saved.", 'error')
+        flash("Database connection error.", 'error')
         return redirect(url_for('user_dashboard'))
 
     try:
         cursor = conn.cursor()
-        
-        # --- 1. GATHER FORM DATA ---
-        department_name = request.form.get('department')
-        category = request.form.get('project_type') # Map to REBATE.Category
-        building = request.form.get('building')      # Assuming you added a building field to the user form
-        sponsor_id = request.form.get('sponsor')    # Map to REBATE.Sponsor_ID
-        
-        # Retrieve the user's Department_ID from the session
-        department_id = session.get('user_id') 
-        
-        # NOTE: File Upload and Description/Title logic omitted here for database matching
-        
-        # --- 2. INSERT INTO REBATE TABLE ---
         sql = """
         INSERT INTO REBATE
         (Category, Status, Building, Submission_Date, Department_ID, Sponsor_ID, Office_Notes)
         VALUES (%s, %s, %s, NOW(), %s, %s, %s) 
         """
-        data = (
-            category,
-            'Pending',
-            building,
-            department_id,
-            sponsor_id,
-            f"Submitted by {department_name}." # Initial note
-        )
+        
+        # Office_Notes is mapped to applicant_description for this prototype
+        data = (category, 'Pending', building, department_id, sponsor_id, applicant_description)
         
         cursor.execute(sql, data)
         conn.commit()
         cursor.close()
         
-        flash("Your application has been submitted and is pending review.", 'success')
+        flash("Application submitted successfully.", 'success')
         return redirect(url_for('user_dashboard'))
 
     except mysql.connector.Error as err:
-        print(f"Database insertion error into REBATE: {err}")
+        print(f"Database error: {err}")
         conn.rollback()
-        flash("Error submitting application to database.", 'error')
+        flash("System Error: Could not save data.", 'error')
         return redirect(url_for('user_dashboard'))
-        
     finally:
         if conn and conn.is_connected():
             conn.close()
@@ -693,17 +673,15 @@ def user_save_draft():
 # --- REVIEW APPLICATION (GET) ---
 @app.route('/review-application/<string:application_id>', methods=['GET'])
 def review_application(application_id):
-    """Renders the review form for a single application."""
     if 'contractor_logged_in' not in session:
         return redirect(url_for('contractor_login'))
 
     conn = get_db_connection()
-    application_details = None
-
     try:
         cursor = conn.cursor(dictionary=True)
         
-        # UPDATED QUERY: Joins the approval table to get the amount
+        # REMOVED R.Description because it's not in your list
+        # Keeping R.Office_Notes as it is in your REBATE table
         query = """
         SELECT 
             R.SOP_Number, R.Category, R.Building, R.Department_ID, R.Status, R.Office_Notes,
@@ -718,14 +696,12 @@ def review_application(application_id):
         
         if not application_details:
             return "Application not found.", 404
-        
+            
     except mysql.connector.Error as err:
-        print(f"Database query error: {err}")
+        print(f"Database error: {err}")
         return "Error fetching application details.", 500
-        
     finally:
-        if conn and conn.is_connected():
-            conn.close()
+        conn.close()
 
     return render_template('application_review_form.html', details=application_details)
 
@@ -836,6 +812,56 @@ def update_status(sop_number):
 
     return redirect(url_for('view_all_applications'))
 
+@app.route('/disburse-payment/<string:sop_number>', methods=['POST'])
+def disburse_payment(sop_number):
+    """Handles the final payout step performed by a Sponsor."""
+    if 'sponsor_logged_in' not in session:
+        flash("Unauthorized access.")
+        return redirect(url_for('login_page'))
+
+    amount = request.form.get('approved_amount')
+    sponsor_id = session.get('sponsor_id')
+    
+    conn = get_db_connection()
+    if conn is None: return "DB Error", 500
+
+    try:
+        cursor = conn.cursor()
+        
+        # 1. Update REBATE_APPROVALS with the actual payment date and final amount
+        # Check if record exists (from your sync function), if so UPDATE, else INSERT
+        sql_check = "SELECT SOP_Number FROM REBATE_APPROVALS WHERE SOP_Number = %s"
+        cursor.execute(sql_check, (sop_number,))
+        
+        if cursor.fetchone():
+            sql_action = """
+                UPDATE REBATE_APPROVALS 
+                SET Approved_Amount = %s, Payment_Date = NOW(), Disbursed_Date = NOW() 
+                WHERE SOP_Number = %s
+            """
+            cursor.execute(sql_action, (amount, sop_number))
+        else:
+            sql_action = """
+                INSERT INTO REBATE_APPROVALS (SOP_Number, Approved_Amount, Payment_Date, Sponsor_ID)
+                VALUES (%s, %s, NOW(), %s)
+            """
+            cursor.execute(sql_action, (sop_number, amount, sponsor_id))
+
+        # 2. Update the main REBATE table status to 'Disbursed'
+        sql_status = "UPDATE REBATE SET Status = 'Disbursed' WHERE SOP_Number = %s"
+        cursor.execute(sql_status, (sop_number,))
+
+        conn.commit()
+        flash(f"Funds successfully disbursed for application {sop_number}.", 'success')
+    except Exception as e:
+        conn.rollback()
+        print(f"Disbursement Error: {e}")
+        flash("Error processing disbursement.", 'danger')
+    finally:
+        conn.close()
+
+    return redirect(url_for('sponsor_approvals'))
+
 # ==============================================================================
 # 📄 PUBLIC & MISC ROUTES
 # ==============================================================================
@@ -872,6 +898,87 @@ def user_signup():
 
 
 # --- REPORT AND ADMIN ROUTES (PLACEHOLDERS) ---
+
+@app.route('/admin/aging-report', methods=['GET', 'POST'])
+def aging_report():
+    if 'contractor_logged_in' not in session:
+        return redirect(url_for('contractor_login'))
+
+    # 1. Look for the 'days' parameter in the URL
+    days_param = request.args.get('days')
+    
+    aging_apps = []
+    days_threshold = 0  # Default display value for the input box
+
+    # 2. ONLY run the query if the user has actually submitted the form
+    if days_param is not None:
+        try:
+            days_threshold = int(days_param)
+            conn = get_db_connection()
+            if conn:
+                cursor = conn.cursor(dictionary=True)
+                # Parameterized query (R-10)
+                query = """
+                    SELECT SOP_Number, Building, Category, Submission_Date,
+                           DATEDIFF(CURDATE(), Submission_Date) AS Days_Old
+                    FROM REBATE
+                    WHERE Status = 'Pending' 
+                    AND DATEDIFF(CURDATE(), Submission_Date) > %s
+                    ORDER BY Days_Old DESC
+                """
+                cursor.execute(query, (days_threshold,))
+                aging_apps = cursor.fetchall()
+                cursor.close()
+                conn.close()
+        except ValueError:
+            days_threshold = 0
+
+    # 3. Pass a boolean 'has_searched' so the HTML knows whether to show results
+    return render_template('aging_report.html', 
+                           apps=aging_apps, 
+                           threshold=days_threshold, 
+                           has_searched=(days_param is not None))
+
+#--- High Value Audit ---
+@app.route('/high-value-audit')
+def high_value_audit():
+    if not session.get('contractor_logged_in'):
+        return redirect(url_for('contractor_login'))
+
+    # 1. Get the amount from the URL
+    amount_param = request.args.get('amount')
+    
+    apps = []
+    threshold = 0.00
+    
+    # 2. Only run database logic if the user actually provided an amount
+    if amount_param is not None:
+        try:
+            threshold = float(amount_param)
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+
+            sql = """
+                SELECT 
+                    r.SOP_Number, r.Building, r.Category, 
+                    ra.Approved_Amount, ra.Payment_Date, ra.Office_Notes
+                FROM REBATE r
+                INNER JOIN REBATE_APPROVALS ra ON r.SOP_Number = ra.SOP_Number
+                WHERE ra.Approved_Amount >= %s
+                ORDER BY ra.Approved_Amount DESC
+            """
+            cursor.execute(sql, (threshold,))
+            apps = cursor.fetchall()
+            cursor.close()
+            conn.close()
+        except ValueError:
+            threshold = 0.00
+
+    # 3. Pass has_searched to the template
+    return render_template('high_value_audit.html', 
+                           apps=apps, 
+                           threshold=threshold, 
+                           has_searched=(amount_param is not None))
 
 # --- ENERGY REPORT VIEW ---
 @app.route('/energy-report')

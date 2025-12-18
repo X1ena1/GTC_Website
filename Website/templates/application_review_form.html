@@ -23,6 +23,16 @@
             margin-top: 15px; padding-top: 10px; border-top: 1px solid #2a2a2a;
             font-size: 11px; color: #666; display: flex; justify-content: space-between;
         }
+        .notes-box {
+            background: #252525; 
+            padding: 15px; 
+            border-radius: 5px; 
+            border: 1px solid #444; 
+            color: #ccc; 
+            font-style: italic;
+            margin-top: 5px;
+            white-space: pre-wrap; /* Preserves line breaks from the textarea */
+        }
     </style>
 </head>
 <body>
@@ -43,7 +53,15 @@
             </p>
             <hr>
             <p><strong>Project type :</strong> {{ details.Category }} (Building: {{ details.Building }})</p>
-            <p><strong>Documents Uploaded :</strong> Proposal.pdf <button>View</button> Specs.docx <button>View</button></p>
+            
+            <div style="margin-top: 15px;">
+                <p><strong>Applicant's Project Description/Notes:</strong></p>
+                <div class="notes-box">
+                    {{ details.Office_Notes or 'No description provided by applicant.' }}
+                </div>
+            </div>
+
+            <p style="margin-top: 15px;"><strong>Documents Uploaded :</strong> Proposal.pdf <button>View</button> Specs.docx <button>View</button></p>
             <hr>
         </section>
 
@@ -63,10 +81,10 @@
                     <small class="form-text text-muted">Amount required for financial records.</small>
                 </div>
                 
-                <h3>Notes to Applicant :</h3>
-                <textarea name="notes_to_applicant" rows="5" placeholder="Enter comments or reasons for decision..." required></textarea>
+                <h3>Decision Notes to Applicant :</h3>
+                <textarea name="notes_to_applicant" rows="5" placeholder="Enter comments or reasons for decision..." style="width:100%; padding:10px; border-radius:5px; background:#f9f9f9;" required></textarea>
                 
-                <div class="action-buttons">
+                <div class="action-buttons" style="margin-top: 20px;">
                     <button type="submit" name="action" value="Approved" class="btn btn-approve">Approve</button>
                     <button type="submit" name="action" value="Request revision" class="btn btn-revision">Request revision</button>
                     <button type="submit" name="action" value="Rejected" class="btn btn-reject">Reject</button>
@@ -84,19 +102,21 @@
 
                 <p style="color: #888; font-size: 11px; text-transform: uppercase; margin-bottom: 5px;">Internal Review Notes:</p>
                 <p style="color: #eee; font-style: italic; line-height: 1.6; background: #252525; padding: 12px; border-radius: 4px;">
-                    "{{ details.Office_Notes or 'No notes recorded.' }}"
+                    "{{ details.Decision_Notes or 'No decision notes recorded.' }}"
                 </p>
 
                 <div class="timestamp-footer">
-                    <span><strong>Reviewer:</strong> {{ session.get('username', 'System User') }}</span>
-                    <span><strong>Processed Date:</strong> {{ details.Decision_Date or 'See notes for timestamp' }}</span>
+                    <span><strong>Reviewer:</strong> {{ session.get('username', 'Office of Sustainability') }}</span>
+                    <span><strong>Processed Date:</strong> {{ details.Decision_Date or 'Today' }}</span>
                 </div>
             </div>
         {% endif %}
 
-        <a href="{{ url_for('view_all_applications') }}" class="back-link">
-            &larr; Back to Dashboard
-        </a>
+        <div style="margin-top: 30px;">
+            <a href="{{ url_for('view_all_applications') }}" class="back-link" style="text-decoration: none; font-weight: bold; color: var(--primary-green);">
+                &larr; Back to Dashboard
+            </a>
+        </div>
     </main>
 </body>
 </html>

@@ -9,6 +9,7 @@
 </head>
 <body>
     
+
     <header class="main-header">
         <div class="top-bar">
             <div class="logo-area">
@@ -21,19 +22,28 @@
             
             <h2 class="welcome-title">Welcome {{ session.get('username', 'Office of Sustainability') }}</h2>
             
-            <div class="header-nav-container">
-                <div class="nav-links-right">
-                    <a href="{{ url_for('index') }}">Home</a>
-                    
-                    <div class="dropdown">
-                        <button class="dropbtn">Admin & Reports</button>
+                <div class="header-nav-container">
+                    <div class="nav-links-right" style="display: flex; align-items: center; gap: 15px;">
+                        <a href="{{ url_for('index') }}">Home</a>
+                        
+                    <div class="dropdown" style="margin: 0 10px;">
+                        <button class="dropbtn">Search Audits</button>
                         <div class="dropdown-content">
-                            <a href="{{ url_for('energy_report') }}">Energy Report</a>
-                            <a href="{{ url_for('sponsor_approvals') }}">Sponsor Approvals</a>
-                            <a href="{{ url_for('view_all_applications') }}">Application Hub</a>
+                            <a href="{{ url_for('aging_report') }}">Aging Audit</a>
+                            <a href="{{ url_for('high_value_audit') }}">High-Value Audit</a>
                         </div>
                     </div>
-                    <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+
+                    <div class="dropdown" style="margin: 0 10px;">
+                        <button class="dropbtn" style="border-radius: 4px;">Admin & Reports</button>
+                        <div class="dropdown-content">
+                            <a href="{{ url_for('energy_report') }}">Energy Report</a>
+                            <a href="{{ url_for('view_all_applications') }}">Application Hub</a>
+                            <a href="{{ url_for('sponsor_approvals') }}">Sponsor Approvals</a>
+                        </div>
+                    </div>
+
+                    <a href="{{ url_for('logout') }}" class="logout-link" style="margin-left: 10px;">Logout</a>
                 </div>
             </div>
         </div>

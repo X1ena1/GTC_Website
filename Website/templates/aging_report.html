@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aging Audit - Manual Parameter Query</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" type="text/css">
+</head>
+<body>
+
+
+    <header class="main-header">
+        <div class="top-bar">
+            <div class="logo-area">
+                <img src="{{ url_for('static', filename='img/uh-logo.png') }}" alt="University of Hawai'i Manoa Logo">
+                <div class="utility-icons">
+                    <span class="icon-bell"></span> 
+                    <span class="icon-gear"></span> 
+                </div>
+            </div>
+            
+            <h2 class="welcome-title">Welcome {{ session.get('username', 'Office of Sustainability') }}</h2>
+            
+                <div class="header-nav-container">
+                    <div class="nav-links-right" style="display: flex; align-items: center; gap: 15px;">
+                        <a href="{{ url_for('index') }}">Home</a>
+                        
+                    <div class="dropdown" style="margin: 0 10px;">
+                        <button class="dropbtn">Search Audits</button>
+                        <div class="dropdown-content">
+                            <a href="{{ url_for('aging_report') }}">Aging Audit</a>
+                            <a href="{{ url_for('high_value_audit') }}">High-Value Audit</a>
+                        </div>
+                    </div>
+
+                    <div class="dropdown" style="margin: 0 10px;">
+                        <button class="dropbtn" style="border-radius: 4px;">Admin & Reports</button>
+                        <div class="dropdown-content">
+                            <a href="{{ url_for('energy_report') }}">Energy Report</a>
+                            <a href="{{ url_for('payment_report') }}">Payment Report</a>
+                            <a href="{{ url_for('sponsor_approvals') }}">Sponsor Approvals</a>
+                            <a href="{{ url_for('view_all_applications') }}">Application Hub</a>
+                        </div>
+                    </div>
+
+                    <a href="{{ url_for('logout') }}" class="logout-link" style="margin-left: 10px;">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard-content-area">
+        <section class="intro-text">
+            <h2>Application Aging Audit</h2>
+<section class="action-buttons" style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #444; margin-bottom: 30px;">
+    <form method="GET" action="{{ url_for('aging_report') }}" style="display: flex; align-items: center; gap: 20px;">
+        <label style="font-size: 1.1em; font-weight: bold; color: #fff;">Enter Age Threshold (Days):</label>
+        
+        <input type="number" name="days" value="{{ threshold }}" 
+               style="width: 100px; padding: 12px; font-size: 1em; background: #333; color: white; border: 2px solid #555; border-radius: 6px;" 
+               min="0" required>
+        
+        <button type="submit" class="action-btn" style="background-color: #28a745; padding: 12px 25px; border:none; border-radius:6px; color:white; cursor:pointer; font-weight:bold;">
+            Run Query
+        </button>
+    </form>
+</section>
+
+    <section class="status-feed">
+        <div class="feed-box">
+            {% if has_searched %}
+                <h3 style="margin-bottom: 15px;">
+                    Results: Pending applications older than <u>{{ threshold }}</u> days
+                </h3>
+                
+                {% if apps %}
+                    <table style="width: 100%; border-collapse: collapse; color: rgb(0, 0, 0); margin-top: 10px;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #444; text-align: left;">
+                                <th style="padding: 12px;">SOP #</th>
+                                <th>Building</th>
+                                <th>Category</th>
+                                <th>Submitted On</th>
+                                <th>Current Age</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in apps %}
+                            <tr style="border-bottom: 1px solid #333;">
+                                <td style="padding: 12px;">{{ app.SOP_Number }}</td>
+                                <td>{{ app.Building }}</td>
+                                <td>{{ app.Category }}</td>
+                                <td>{{ app.Submission_Date }}</td>
+                                <td style="color: #ffc107; font-weight: bold;">{{ app.Days_Old }} Days</td>
+                                <td>
+                                    <a href="{{ url_for('review_application', application_id=app.SOP_Number) }}" 
+                                    style="color: #4da3ff; text-decoration: none;">Review Detail</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div style="padding: 40px; text-align: center; color: #888;">
+                        <p>No applications found matching this parameter. All pending items are newer than {{ threshold }} days.</p>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div style="padding: 60px; text-align: center; color: #888; border: 2px dashed #444; border-radius: 12px;">
+                    <p style="font-size: 1.2em;">Ready for Audit.</p>
+                    <p>Enter a number of days above and click "Run Query" to pull data from the REBATE table.</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+    </main>
+
+</body>
+</html>

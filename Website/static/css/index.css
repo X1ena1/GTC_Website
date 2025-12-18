@@ -25,7 +25,7 @@ body {
 /* --- Utility Classes --- */
 .container {
     width: 90%;
-    max-width: 1200px; /* Max width to center the content */
+    max-width: 1200px; 
     margin: 0 auto;
 }
 
@@ -258,10 +258,6 @@ a {
 
 /* *** END EXISTING STYLES *** */
 
-/* * === START NEW INTERACTIVE DETAIL STYLES === 
- * Requires adding a <p class="step-detail">...</p> element to your HTML for each step.
- */
-
 .step-detail {
     font-size: 0.9em;
     color: #666;
@@ -284,7 +280,7 @@ a {
 .main-footer {
     background-color: var(--primary-green);
     color: var(--text-light);
-    padding: 40px 0 0 0; /* Padding at the top */
+    padding: 40px 0 0 0; 
     margin-top: 50px;
 }
 
@@ -487,7 +483,6 @@ a {
 }
 
 /* 4. Small adjustments to the main nav */
-/* (Assuming you update the 'Home' link in index.html to point to the index route) */
 .nav-links li a[href*="impact"] {
     /* Optional: Highlight the active page */
     border-bottom: 2px solid var(--secondary-green); 
@@ -497,13 +492,11 @@ a {
 
 /* 1. Header Adjustments for Dashboard View */
 .main-header .top-bar {
-    /* Modify top bar layout for the centered title and right alignment */
     justify-content: space-between;
     padding: 10px 3%; /* Slightly less padding */
 }
 
 .main-header .logo-area {
-    /* Ensure logo and icons are grouped on the left */
     flex-grow: 0;
     gap: 15px;
 }
@@ -515,7 +508,7 @@ a {
 
 /* Styling for the new back button link */
 .back-link-btn {
-    display: inline-block; /* CRITICAL: Allows padding and width/height like a button */
+    display: inline-block; 
     padding: 10px 20px;
     font-size: 1em;
     text-align: center;
@@ -554,7 +547,7 @@ a {
 /* >>>>>> START OF CRITICAL CHANGE <<<<<< */
 .nav-links-right {
     display: flex;
-    align-items: center; /* ADDED THIS for vertical alignment */
+    align-items: center; 
     gap: 20px;
 }
 /* >>>>>> END OF CRITICAL CHANGE <<<<<< */
@@ -568,7 +561,6 @@ a {
     width: 40px; /* Size of the far right circular icon */
     height: 40px;
     border-radius: 50%;
-    /* You would load the green contractor icon image here */
 }
 
 /* 2. Main Dashboard Content Area */
@@ -671,17 +663,15 @@ a {
     margin-bottom: 10px;
 }
 
-/* --- Dropdown Menu Styles (NEWLY ADDED) --- */
+/* --- Dropdown Menu Styles  --- */
 
 .dropdown {
     position: relative;
     display: inline-block;
-    /* Adjust margin to position it neatly next to Logout */
     margin-right: 15px; 
 }
 
 .dropbtn {
-    /* Adjusted the background-color for better visibility against the dark header */
     background-color: #38704D; 
     color: #e0e0e0; /* Dark text */
     padding: 8px 15px;
@@ -829,21 +819,4 @@ a {
     background-color: #aaa !important;
     cursor: not-allowed;
     pointer-events: none;
-}
-
-/* --- Footer Logo Styling (To be added to index.css) --- */
-
-/* Ensure the logo and text are vertically aligned */
-.footer-col.contact-info h3 {
-    display: flex;
-    align-items: center;
-    gap: 12px; /* Increased gap for better spacing */
-}
-
-/* Define the size for the GreenTrack Consulting logo */
-.footer-col.contact-info .gtc-logo {
-    height: 50px; /* Increased the height for better visibility */
-    width: auto;
-    /* Optional: Add a light filter if the logo needs to stand out against the dark background */
-    /* filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4)); */
 }

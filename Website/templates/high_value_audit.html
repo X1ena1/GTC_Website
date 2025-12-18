@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High-Value Audit - Manual Parameter Query</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" type="text/css">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="top-bar">
+            <div class="logo-area">
+                <img src="{{ url_for('static', filename='img/uh-logo.png') }}" alt="University of Hawai'i Manoa Logo">
+                <div class="utility-icons">
+                    <span class="icon-bell"></span> 
+                    <span class="icon-gear"></span> 
+                </div>
+            </div>
+            
+            <h2 class="welcome-title">Welcome {{ session.get('username', 'Office of Sustainability') }}</h2>
+            
+            <div class="header-nav-container">
+                <div class="nav-links-right" style="display: flex; align-items: center; gap: 15px;">
+                    <a href="{{ url_for('index') }}">Home</a>
+                    
+                    <div class="dropdown" style="margin: 0 10px;">
+                        <button class="dropbtn">Search Audits</button>
+                        <div class="dropdown-content">
+                            <a href="{{ url_for('aging_report') }}">Aging Audit</a>
+                            <a href="{{ url_for('high_value_audit') }}">High-Value Audit</a>
+                        </div>
+                    </div>
+
+                    <div class="dropdown" style="margin: 0 10px;">
+                        <button class="dropbtn" style="border-radius: 4px;">Admin & Reports</button>
+                        <div class="dropdown-content">
+                            <a href="{{ url_for('energy_report') }}">Energy Report</a>
+                            <a href="{{ url_for('payment_report') }}">Payment Report</a>
+                            <a href="{{ url_for('sponsor_approvals') }}">Sponsor Approvals</a>
+                            <a href="{{ url_for('view_all_applications') }}">Application Hub</a>
+                        </div>
+                    </div>
+
+                    <a href="{{ url_for('logout') }}" class="logout-link" style="margin-left: 10px;">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard-content-area">
+        <section class="intro-text">
+            <h2>High-Value Transaction Audit</h2>
+            <p><strong>Requirement R10:</strong> Manual parameterized search to identify high-risk financial disbursements.</p>
+        </section>
+
+        <section class="action-buttons" style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #444; margin-bottom: 30px;">
+            <form method="GET" action="{{ url_for('high_value_audit') }}" style="display: flex; align-items: center; gap: 20px;">
+                <label style="font-size: 1.1em; font-weight: bold; color: #fe8484;">Enter Minimum Amount ($):</label>
+                
+                <input type="number" name="amount" value="{{ threshold }}" 
+                       placeholder="e.g. 5000"
+                       style="width: 150px; padding: 12px; font-size: 1em; background: #333; color: white; border: 2px solid #555; border-radius: 6px;" 
+                       min="0" step="0.01" required>
+                
+                <button type="submit" class="action-btn" style="background-color: #d9534f; padding: 12px 25px; border-radius: 6px; border: none; color: white; cursor: pointer; font-weight: bold;">
+                    Filter Transactions
+                </button>
+            </form>
+        </section>
+
+        <section class="status-feed">
+            <div class="feed-box">
+                {% if has_searched %}
+                    <h3 style="margin-bottom: 15px;">
+                        Audit Results: Approvals ≥ <span style="color: #d9534f;">${{ "{:,.2f}".format(threshold|float) }}</span>
+                    </h3>
+                    
+                    {% if apps %}
+                    <table style="width: 100%; border-collapse: collapse; color: rgb(0, 0, 0); margin-top: 10px;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #444; text-align: left;">
+                                <th style="padding: 12px;">SOP #</th>
+                                <th>Building</th>
+                                <th>Category</th>
+                                <th>Approved Amount</th>
+                                <th>Payment Date</th>
+                                <th>Office Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in apps %}
+                            <tr style="border-bottom: 1px solid #333;">
+                                <td style="padding: 12px;">{{ app.SOP_Number }}</td>
+                                <td>{{ app.Building }}</td>
+                                <td>{{ app.Category }}</td>
+                                <td style="font-weight: bold; color: #ffc107;">
+                                    ${{ "{:,.2f}".format(app.Approved_Amount) }}
+                                </td>
+                                <td>{{ app.Payment_Date if app.Payment_Date else 'PENDING' }}</td>
+                                <td style="font-size: 0.85em; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    {{ app.Office_Notes }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div style="padding: 40px; text-align: center; color: #888;">
+                        <p>No approval records found exceeding ${{ "{:,.2f}".format(threshold|float) }}.</p>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div style="padding: 60px; text-align: center; color: #888; border: 2px dashed #d9534f; border-radius: 12px;">
+                        <p style="font-size: 1.2em; color: #fe8484;">Financial Audit Ready.</p>
+                        <p>Enter a dollar threshold above to scan the REBATE_APPROVALS table for high-value transactions.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+</body>
+</html>

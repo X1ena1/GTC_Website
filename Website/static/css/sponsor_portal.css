@@ -1,0 +1,150 @@
+/* ==========================================================================
+   1. GLOBAL RESET
+   ========================================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box; /* Prevents padding from adding to element width */
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background-color: var(--dark-bg);
+}
+
+/* ==========================================================================
+   2. VARIABLES
+   ========================================================================== */
+:root {
+    --accent-green: #2ecc71;
+    --dark-bg: #121212;
+    --card-bg: #1e1e1e;
+    --border-color: #333;
+    --text-muted: #888;
+    --input-bg: #2a2a2a;
+}
+
+/* ==========================================================================
+   3. HEADER & LAYOUT
+   ========================================================================== */
+.main-header {
+    margin-top: 0 !important;
+    width: 100%;
+    display: block;
+}
+
+.report-container {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* ==========================================================================
+   4. STATS GRID & CARDS
+   ========================================================================== */
+.stats-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+    gap: 20px; 
+    margin-bottom: 30px; 
+}
+
+.stat-card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 5px solid var(--accent-green);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.stat-card h3 { 
+    color: var(--text-muted); 
+    font-size: 0.9rem; 
+    margin: 0; 
+    text-transform: uppercase; 
+}
+
+.stat-card .value { 
+    color: white; 
+    font-size: 1.8rem; 
+    font-weight: bold; 
+    margin-top: 5px; 
+}
+
+/* ==========================================================================
+   5. FILTERS & INPUTS
+   ========================================================================== */
+.filter-container {
+    margin-bottom: 25px;
+    display: flex;
+    gap: 15px;
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+
+.filter-input {
+    flex-grow: 1;
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background: var(--input-bg);
+    color: white;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.filter-input:focus { 
+    border-color: var(--accent-green); 
+}
+
+.filter-select {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background: var(--input-bg);
+    color: white;
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   6. TABLES & COMPONENTS
+   ========================================================================== */
+.notes-text { 
+    font-size: 0.85rem; 
+    color: #aaa; 
+    line-height: 1.4; 
+    max-width: 250px; 
+}
+
+.paid-badge { 
+    background: rgba(46, 204, 113, 0.2); 
+    color: var(--accent-green); 
+    padding: 4px 10px; 
+    border-radius: 20px; 
+    font-size: 0.75rem; 
+    font-weight: bold;
+    display: inline-block;
+}
+
+/* ==========================================================================
+   7. BUTTONS
+   ========================================================================== */
+.action-btn {
+    background: var(--accent-green);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover { 
+    background: #27ae60; 
+    transform: translateY(-1px); 
+    box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
+}

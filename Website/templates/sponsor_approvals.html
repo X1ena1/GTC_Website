@@ -24,6 +24,14 @@
             <div class="header-nav-container">
                 <div class="nav-links-right">
                     <a href="{{ url_for('index') }}">Home</a>
+
+                    <div class="dropdown" style="margin: 0 10px;">
+                        <button class="dropbtn">Search Audits</button>
+                        <div class="dropdown-content">
+                            <a href="{{ url_for('aging_report') }}">Aging Audit</a>
+                            <a href="{{ url_for('high_value_audit') }}">High-Value Audit</a>
+                        </div>
+                    </div>
                     
                     <div class="dropdown">
                         <button class="dropbtn">Admin & Reports</button>
@@ -46,10 +54,10 @@
 
                 <form method="GET" action="{{ url_for('sponsor_approvals') }}" class="filter-form">
                     <label for="status_filter" style="font-weight: bold; margin-right: 10px;">Status:</label>
-                    <select name="status_filter" id="status_filter" onchange="this.form.submit()" style="padding: 8px; border-radius: 5px; background: #2a2a2a; color: white; border: 1px solid #444;">
+                    <select name="status_filter" id="status_filter" onchange="this.form.submit()" style="padding: 8px; border-radius: 5px; background: #f8f8f8; color: rgb(11, 11, 11); border: 1px solid #444;">
                         <option value="all" {% if current_filter == 'all' %}selected{% endif %}>All Sponsor Records</option>
-                        <option value="pending" {% if current_filter == 'pending' %}selected{% endif %}>⏳ Pending Payment</option>
-                        <option value="approved" {% if current_filter == 'approved' %}selected{% endif %}>✅ Fully Paid</option>
+                        <option value="pending" {% if current_filter == 'pending' %}selected{% endif %}>Pending Payment</option>
+                        <option value="approved" {% if current_filter == 'approved' %}selected{% endif %}>Fully Paid</option>
                     </select>
                 </form>
             </div>
@@ -99,14 +107,6 @@
                                         ${{ "{:,.2f}".format(approval.Approved_Amount) }}
                                     {% else %}
                                         <span class="status-pending">N/A</span>
-                                    {% endif %}
-                                </td>
-                                
-                                <td>
-                                    {% if approval.Disbursed_Amount_Display is not none %}
-                                        ${{ "{:,.2f}".format(approval.Disbursed_Amount_Display) }} 
-                                    {% else %}
-                                        <span class="status-pending">Pending Payment</span>
                                     {% endif %}
                                 </td>
                                 
